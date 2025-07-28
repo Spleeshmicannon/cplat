@@ -1,0 +1,48 @@
+cmake_minimum_required(VERSION 3.22)
+Project(cplat_project)
+
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
+file(GLOB_RECURSE SOURCES 
+    "${CMAKE_SOURCE_DIR}/src/*.cpp"
+    "${CMAKE_SOURCE_DIR}/src/*.c"
+)
+
+file(GLOB_RECURSE LIB_SOURCES
+    "${CMAKE_SOURCE_DIR}/lib-src/*.c"
+)
+
+if(WINDOWS_BUILD)
+    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -mwindows")
+else()
+    find_package(X11 REQUIRED)
+endif()
+
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wextra -O2")
+
+# copying header files to include dir
+set(SOURCE_DIR "${CMAKE_SOURCE_DIR}/lib-src")
+set(DEST_DIR "${CMAKE_SOURCE_DIR}/include")
+
+file(GLOB_RECURSE HEADER_FILES RELATIVE "${SOURCE_DIR}" "${SOURCE_DIR}/*.h")
+
+foreach(header IN LISTS HEADER_FILES)
+    set(src "${SOURCE_DIR}/${header}")
+    set(dst "${DEST_DIR}/${header}")
+    get_filename_component(dst_dir "${dst}" DIRECTORY)
+    file(MAKE_DIRECTORY "${dst_dir}")
+    file(COPY "${src}" DESTINATION "${dst_dir}")
+endforeach()
+
+# CPLAT Libray
+add_library(cplat ${LIB_SOURCES})
+if(NOT WINDOWS_BUILD)
+    target_include_directories(cplat PRIVATE ${X11_INCLUDE_DIR})
+    target_link_libraries(cplat PRIVATE ${X11_LIBRARIES})
+endif()
+
+# CPLAT test executable
+add_executable(cplat_test ${SOURCES})
+target_include_directories(cplat_test PRIVATE "${CMAKE_SOURCE_DIR}/include")
+target_link_libraries(cplat_test PRIVATE cplat)
+
