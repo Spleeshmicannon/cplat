@@ -1,5 +1,5 @@
-#ifndef MACROS
-#define MACROS
+#ifndef CP_MACROS
+#define CP_MACROS
 
 // inlining
 #ifdef __GNUC__
@@ -22,4 +22,4 @@
 #define CP_LINUX
 #endif 
 
-#endif // MACROS
+#endif // CP_MACROS

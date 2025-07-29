@@ -21,6 +21,8 @@
 #ifndef CPLAT_H
 #define CPLAT_H
 
+#define CP_DEBUG
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -28,11 +30,12 @@ extern "C" {
 #include "cplat/macros.h"
 #include "cplat/logger.h"
 #include "cplat/asserts.h"
+#include "cplat//memory.h"
 
 #include <stdbool.h>
 #include <stdint.h>
 
-typedef struct priv_cp_window CP_Window;
+typedef struct st_cp_window CP_Window;
 
 typedef struct 
 {
@@ -45,6 +48,9 @@ typedef enum
     CP_ERROR_SUCCESS
 } 
 CP_ERROR;
+
+bool CP_init();
+void CP_deinit();
 
 CP_ERROR CP_create_window(CP_Window* window, const CP_WindowConfig* const config);
 void CP_destroy_window(CP_Window* window);

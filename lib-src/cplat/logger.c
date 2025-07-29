@@ -1,7 +1,22 @@
 #include "logger.h"
+#include "macros.h"
 
 #include <stdio.h>
 #include <time.h>
+
+static CP_INLINE const char* CP_log_level_to_string(CP_LOG_LEVEL level)
+{
+    static const char* ll_strings[] = {
+        "FATAL",
+        "ERROR",
+        "WARN",
+        "INFO",
+        "DEBUG",
+        "TRACE"
+    };
+
+    return ll_strings[level];
+}
 
 void CP_log_message(CP_LOG_LEVEL level, const char* message, ...)
 {
@@ -10,6 +25,10 @@ void CP_log_message(CP_LOG_LEVEL level, const char* message, ...)
     struct tm* tm_info = localtime(&t);
     char time_buffer[CV_TIME_BUFFER];
     strftime(time_buffer, CV_TIME_BUFFER, "%Y-%m-%d %H:%M:%S", tm_info);
+
+    // get nanoseconds
+    struct timespec ts;
+    clock_gettime(CLOCK_REALTIME, &ts);
     
     // process args
     va_list args;
@@ -19,12 +38,12 @@ void CP_log_message(CP_LOG_LEVEL level, const char* message, ...)
     va_end(args);
 
     // print formatted message
-    if(level >= CP_LOG_ERROR)
+    if(level <= CP_LOG_ERROR)
     {
-        fprintf(stderr, "[%s][%s] %s\n", time_buffer, CP_log_level_to_string(level), formatted_message);
+        fprintf(stderr, "[%s.%09ld][%s] %s\n", time_buffer, ts.tv_nsec, CP_log_level_to_string(level), formatted_message);
     }
     else
     {
-        printf("[%s][%s] %s\n", time_buffer, CP_log_level_to_string(level), formatted_message);
+        printf("[%s.%09ld][%s] %s\n", time_buffer, ts.tv_nsec, CP_log_level_to_string(level), formatted_message);
     }
 }

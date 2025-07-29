@@ -1,6 +1,23 @@
-#ifdef __linux__
 #include "cplat.h"
+#ifdef CP_LINUX
+
 #include <stdio.h>
+#include <stdlib.h>
+
+static struct 
+{
+    
+} platformState;
+
+bool CP_init()
+{
+    return true;
+}
+
+void CP_deinit()
+{
+
+}
 
 CP_ERROR CP_create_window(CP_Window* window, const CP_WindowConfig* const config)
 {
@@ -15,4 +32,6 @@ void CP_destroy_window(CP_Window* window)
     (void)window;
 }
 
-#endif // __linux__
+
+
+#endif // CP_LINUX

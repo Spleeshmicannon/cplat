@@ -1,5 +1,27 @@
+/* zlib license
+ * Copyright (C) 2025 J. Benson
+ * 
+ * This software is provided 'as-is', without any express or implied
+ * warranty.  In no event will the authors be held liable for any damages
+ * arising from the use of this software.
+ * 
+ * Permission is granted to anyone to use this software for any purpose,
+ * including commercial applications, and to alter it and redistribute it
+ * freely, subject to the following restrictions:
+ * 
+ * 1. The origin of this software must not be misrepresented; you must not
+ *    claim that you wrote the original software. If you use this software
+ *    in a product, an acknowledgment in the product documentation would be
+ *    appreciated but is not required.
+ * 2. Altered source versions must be plainly marked as such, and must not be
+ *    misrepresented as being the original software.
+ * 3. This notice may not be removed or altered from any source distribution.
+*/
+
 #ifndef CPLAT_H
 #define CPLAT_H
+
+#define CP_DEBUG
 
 #ifdef __cplusplus
 extern "C" {
@@ -8,11 +30,12 @@ extern "C" {
 #include "cplat/macros.h"
 #include "cplat/logger.h"
 #include "cplat/asserts.h"
+#include "cplat//memory.h"
 
 #include <stdbool.h>
 #include <stdint.h>
 
-typedef struct priv_cp_window CP_Window;
+typedef struct st_cp_window CP_Window;
 
 typedef struct 
 {
@@ -25,6 +48,9 @@ typedef enum
     CP_ERROR_SUCCESS
 } 
 CP_ERROR;
+
+bool CP_init();
+void CP_deinit();
 
 CP_ERROR CP_create_window(CP_Window* window, const CP_WindowConfig* const config);
 void CP_destroy_window(CP_Window* window);

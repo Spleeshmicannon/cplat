@@ -1,6 +1,16 @@
-#ifdef _WIN32
-
 #include "cplat.h"
+#ifdef CP_WIN32
+
+#include <windows.h>
+
+bool CP_init()
+{
+    return true;
+}
+
+void CP_deinit()
+{
+}
 
 CP_ERROR CP_create_window(CP_Window* window, const CP_WindowConfig* const config)
 {
@@ -15,4 +25,7 @@ void CP_destroy_window(CP_Window* window)
 
 }
 
-#endif // WIN32
+
+
+
+#endif // CP_WIN32
