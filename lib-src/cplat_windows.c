@@ -49,8 +49,6 @@ CP_ERROR CP_create_window(CP_Window*const window, const CP_WindowConfig* const c
     // Setting up the window class
     WNDCLASSA wc = {0};
 
-    const char* className = "class_test";
-
     wc.style = CS_DBLCLKS;
 	wc.lpfnWndProc = WIN32_processMessage;
 	wc.cbClsExtra = 0;
@@ -60,7 +58,7 @@ CP_ERROR CP_create_window(CP_Window*const window, const CP_WindowConfig* const c
 	wc.hCursor = LoadCursor(window->hinst, IDC_ARROW);
 	wc.hbrBackground = NULL;
     wc.lpszMenuName = NULL;
-	wc.lpszClassName = (LPCSTR)className;
+	wc.lpszClassName = (LPCSTR)config->windowName;
 
     if(!RegisterClassA(&wc))
     {
@@ -83,7 +81,7 @@ CP_ERROR CP_create_window(CP_Window*const window, const CP_WindowConfig* const c
     // creating the window
     window->hwnd = CreateWindowExA(
         windowExStyle, 
-        (LPCSTR)className,
+        (LPCSTR)config->windowName,
         (LPCSTR)config->windowName,
         windowStyle,
         CW_USEDEFAULT,
