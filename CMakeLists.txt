@@ -18,7 +18,7 @@ else()
     find_package(X11 REQUIRED)
 endif()
 
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wextra -O2")
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wextra -Werror -Wstrict-overflow=3 -Wimplicit -Wconversion -Wformat -O2")
 
 # copying header files to include dir
 set(SOURCE_DIR "${CMAKE_SOURCE_DIR}/lib-src")

@@ -21,22 +21,10 @@
 #include "cplat.h"
 #ifdef CP_WIN32
 
-#include <windows.h>
-
-#include <stdint.h>
-
-struct st_cp_window
-{
-    HINSTANCE hinst;
-    HWND hwnd;
-};
-
 LRESULT CALLBACK WIN32_processMessage(HWND hwnd, uint32_t msg, WPARAM wparam, LPARAM lparam);
 
-CP_ERROR CP_create_window(CP_Window** window, const CP_WindowConfig* const config, CP_MemPool *pool)
+CP_ERROR CP_create_window(CP_Window*const window, const CP_WindowConfig* const config)
 {
-    CP_Window* localWin = NULL;
-
     CP_log_trace("entering CP_create_window");
 
     if(config == NULL)
@@ -49,29 +37,10 @@ CP_ERROR CP_create_window(CP_Window** window, const CP_WindowConfig* const confi
         return CP_ERROR_NULL_CONFIG;
     }
     
-    // allocating memory for the window object (using pool if available)
-    if(pool == NULL)
-    {
-        localWin = (CP_Window*)CP_allocate(sizeof(CP_Window));
-    }
-    else
-    {
-        localWin = (CP_Window*)CP_PoolAllocate(pool, sizeof(CP_Window));
-    }
-
-    if(localWin == NULL)
-    {
-        CP_log_fatal("Failed to allocate window memory");
-        return CP_ERROR_ALLOCATION;
-    }
-    
-    // setting local win data to 0, 
-    // since values are checked against NULL
-    memset(localWin, 0, sizeof(CP_Window));
-    
     // get the HINSTANCE
-    localWin->hinst = GetModuleHandleA(0);
-    if(localWin->hinst == NULL)
+    window->hinst = GetModuleHandleA(0);
+
+    if(window->hinst == NULL)
     {
         CP_log_fatal("failed to get HINSTANCE");
         return CP_ERROR_OS_CALL_FAILED;
@@ -86,9 +55,9 @@ CP_ERROR CP_create_window(CP_Window** window, const CP_WindowConfig* const confi
 	wc.lpfnWndProc = WIN32_processMessage;
 	wc.cbClsExtra = 0;
 	wc.cbWndExtra = 0;
-	wc.hInstance = localWin->hinst;
-	wc.hIcon = LoadIcon(localWin->hinst, IDI_APPLICATION);
-	wc.hCursor = LoadCursor(localWin->hinst, IDC_ARROW);
+	wc.hInstance = window->hinst;
+	wc.hIcon = LoadIcon(window->hinst, IDI_APPLICATION);
+	wc.hCursor = LoadCursor(window->hinst, IDC_ARROW);
 	wc.hbrBackground = NULL;
     wc.lpszMenuName = NULL;
 	wc.lpszClassName = (LPCSTR)className;
@@ -112,7 +81,7 @@ CP_ERROR CP_create_window(CP_Window** window, const CP_WindowConfig* const confi
     );
 
     // creating the window
-    localWin->hwnd = CreateWindowExA(
+    window->hwnd = CreateWindowExA(
         windowExStyle, 
         (LPCSTR)className,
         (LPCSTR)config->windowName,
@@ -123,60 +92,44 @@ CP_ERROR CP_create_window(CP_Window** window, const CP_WindowConfig* const confi
         (int)config->height,
         NULL,
         NULL,
-        localWin->hinst,
+        window->hinst,
         NULL
     );
 
-    if(localWin->hwnd == NULL)
+    if(window->hwnd == NULL)
     {
         CP_log_fatal("Failed to create window - %u", GetLastError());
         return CP_ERROR_OS_CALL_FAILED;
     }
 
-    ShowWindow(localWin->hwnd, SW_SHOW);
-
-    // passing the window back to the caller
-    *window = localWin;
+    ShowWindow(window->hwnd, SW_SHOW);
 
     CP_log_trace("Leaving CP_create_window");
-
     return CP_ERROR_SUCCESS;
 }
 
-void CP_destroy_window(CP_Window* window, CP_MemPool* pool)
+void CP_destroy_window(CP_Window*const window)
 {
     CP_log_trace("Entering CP_destroy_window");
-
-    if (window == NULL)
-    {
-        CP_log_fatal("Passed NULL window to CP_destroy_window");
-        return;
-    }
 
     if(window->hwnd != NULL)
     {
         DestroyWindow(window->hwnd);
         window->hwnd = NULL;
-    }
-    window->hinst = NULL;
-
-    if(pool == NULL)
-    {
-        CP_free(window);
+        window->hinst = NULL;
     }
 
     CP_log_trace("Leaving CP_destroy_window");
 }
 
-CP_WindowEvent CP_get_next_event(CP_Window* window)
+CP_WindowEvent CP_get_next_event(CP_Window*const window)
 {
     MSG message;
-
     CP_WindowEvent event = {0};
 
     SetWindowLongPtrA(window->hwnd, GWLP_USERDATA, (long long)&event);
     
-    while(PeekMessageA(&message, window->hwnd, 0, 0, PM_REMOVE) != 0)
+    if(PeekMessageA(&message, window->hwnd, 0, 0, PM_REMOVE) != 0)
     {
         TranslateMessage(&message);
         DispatchMessageA(&message);
@@ -196,15 +149,78 @@ LRESULT CALLBACK WIN32_processMessage(HWND hwnd, uint32_t msg, WPARAM wparam, LP
             return 1;
         case WM_CLOSE:
         {
-            event->event = CP_EVENT_QUIT;
-            CP_log_trace("close event");
+            event->type= CP_EVENT_QUIT;
+            CP_log_info("close event");
             return 0;
         }
         case WM_DESTROY:
         {
+            CP_log_info("posting quit message");
             PostQuitMessage(0);
             return 0;
         }
+        case WM_KEYDOWN:
+        case WM_SYSKEYDOWN:
+        {
+            event->type = CP_EVENT_KEYDOWN;
+            event->key = (uint32_t)wparam;
+            break;
+        }
+        case WM_KEYUP:
+        case WM_SYSKEYUP:
+        {
+            event->type = CP_EVENT_KEYDOWN;
+            event->key = (uint32_t)wparam;
+            break;
+        }
+        case WM_MOUSEMOVE:
+        {
+            event->type = CP_EVENT_MOUSEMOVE;
+            event->mx = (uint16_t)GET_X_LPARAM(lparam);
+            event->my = (uint16_t)GET_Y_LPARAM(lparam);
+            break;
+        }
+        case WM_MOUSEWHEEL:
+        {
+            event->type = CP_EVENT_MOUSEWHEEL;
+            int zDelta = GET_WHEEL_DELTA_WPARAM(wparam);
+            if(zDelta != 0)
+            {
+                event->mWheel = (zDelta < 0) ? -1 : 1;
+            }
+            break;
+        }
+        case WM_LBUTTONDOWN: 
+        {
+            event->type = CP_EVENT_LBUTTONDOWN;
+            break;
+        }
+        case WM_MBUTTONDOWN: 
+        {
+            event->type = CP_EVENT_MBUTTONDOWN;
+            break;
+        }
+        case WM_RBUTTONDOWN: 
+        {
+            event->type = CP_EVENT_RBUTTONDOWN;
+            break;
+        }
+        case WM_LBUTTONUP: 
+        {
+            event->type = CP_EVENT_LBUTTONUP;
+            break;
+        }
+        case WM_MBUTTONUP: 
+        {
+            event->type = CP_EVENT_MBUTTONUP;
+            break;
+        }
+        case WM_RBUTTONUP: 
+        {
+            event->type = CP_EVENT_RBUTTONUP;
+            break;
+        }
+        default: break;
     }
 
     return DefWindowProcA(hwnd, msg, wparam, lparam);

@@ -30,12 +30,30 @@ extern "C" {
 #include "cplat/macros.h"
 #include "cplat/logger.h"
 #include "cplat/asserts.h"
-#include "cplat//memory.h"
+#include "cplat/memory.h"
 
 #include <stdbool.h>
 #include <stdint.h>
 
 typedef struct st_cp_window CP_Window;
+
+#ifdef CP_WIN32
+#define WIN32_LEAN_AND_MEAN
+#include <windows.h>
+#include <windowsx.h>
+
+#include <stdint.h>
+
+struct st_cp_window
+{
+    HINSTANCE hinst;
+    HWND hwnd;
+};
+#elif defined(CP_LINUX)
+struct st_cp_window
+{
+};
+#endif
 
 typedef struct 
 {
@@ -44,7 +62,7 @@ typedef struct
 } 
 CP_WindowConfig;
 
-typedef enum 
+typedef enum
 {
     CP_ERROR_SUCCESS = 0,
     CP_ERROR_ALLOCATION = 1,
@@ -56,25 +74,38 @@ CP_ERROR;
 typedef enum
 {
     CP_EVENT_NONE = 0,
-    CP_EVENT_QUIT
+    CP_EVENT_QUIT = 1,
+    CP_EVENT_KEYDOWN = 2,
+    CP_EVENT_KEYUP = 3,
+    CP_EVENT_MOUSEMOVE = 4,
+    CP_EVENT_MOUSEWHEEL = 5,
+    CP_EVENT_LBUTTONDOWN = 6,
+    CP_EVENT_MBUTTONDOWN = 7,
+    CP_EVENT_RBUTTONDOWN = 8,
+    CP_EVENT_LBUTTONUP = 9,
+    CP_EVENT_MBUTTONUP = 10,
+    CP_EVENT_RBUTTONUP = 11,
 }
 CP_EVENT;
 
 typedef struct 
 {
-    CP_EVENT event;
-    union {
+    CP_EVENT type;
+    union 
+    {
         uint32_t key;
         int32_t mWheel;
-        struct {
-            int16_t mx, my;
+        struct 
+        {
+            uint16_t mx, my;
         };
     };
-} CP_WindowEvent;
+} 
+CP_WindowEvent;
 
-CP_ERROR CP_create_window(CP_Window** window, const CP_WindowConfig* const configm, CP_MemPool* pool);
-CP_WindowEvent CP_get_next_event(CP_Window* window);
-void CP_destroy_window(CP_Window* window, CP_MemPool* pool);
+CP_ERROR CP_create_window(CP_Window*const window, const CP_WindowConfig* const configm);
+CP_WindowEvent CP_get_next_event(CP_Window*const window);
+void CP_destroy_window(CP_Window*const window);
 
 #ifdef __cplusplus
 }

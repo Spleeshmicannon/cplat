@@ -4,8 +4,7 @@
 
 int main()
 {
-    CP_MemPool* pool = nullptr;
-    CP_Window* window = nullptr;
+    CP_Window window;
     CP_WindowConfig config = {
         .width = 1920,
         .height = 1080,
@@ -14,19 +13,19 @@ int main()
         .windowName = "test"
     };
 
-    pool = CP_PoolCreate(1024);
-
-    CP_create_window(&window, &config, pool);
-    if(nullptr == window)
+    CP_ERROR error = CP_create_window(&window, &config);
+    if(error != CP_ERROR_SUCCESS)
     {
         CP_log_fatal("CP failed to create window");
-        CP_PoolDestory(pool);
         return -2;
     }
 
-    while(CP_EVENT_QUIT != CP_get_next_event(window).event);
+    for(CP_WindowEvent event = {}; // zero initialise
+        event.type != CP_EVENT_QUIT; // end loop if user quits
+        event = CP_get_next_event(&window)) // get next event
+    {
 
-    CP_destroy_window(window, pool);
+    }
 
-    CP_PoolDestory(pool);
+    CP_destroy_window(&window);
 }
