@@ -2,6 +2,7 @@
 #ifdef CP_WIN32
 
 #include "memory.h"
+#include "logger.h"
 
 #include <windows.h>
 
@@ -26,7 +27,7 @@ CP_MemPool* CP_PoolCreate(size_t bytes)
 
 void* CP_PoolAllocate(CP_MemPool* pool, size_t bytes)
 {
-    return HeapAlloc(pool->handle, HEAP_ZERO_MEMORY, bytes);
+    return HeapAlloc(pool->handle, 0, bytes);
 }
 
 void CP_PoolDestory(CP_MemPool* pool)
@@ -37,7 +38,7 @@ void CP_PoolDestory(CP_MemPool* pool)
 
 void* CP_allocate(const size_t bytes)
 {
-    return HeapAlloc(GetProcessHeap(), HEAP_ZERO_MEMORY, bytes);
+    return HeapAlloc(GetProcessHeap(), 0, bytes);
 }
 
 void CP_free(void* block)

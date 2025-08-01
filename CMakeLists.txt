@@ -12,8 +12,8 @@ file(GLOB_RECURSE LIB_SOURCES
     "${CMAKE_SOURCE_DIR}/lib-src/*.c"
 )
 
-if(WINDOWS_BUILD)
-    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -mwindows")
+if(WIN32)
+    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -mwindows -static -static-libgcc")
 else()
     find_package(X11 REQUIRED)
 endif()
@@ -35,14 +35,16 @@ foreach(header IN LISTS HEADER_FILES)
 endforeach()
 
 # CPLAT Libray
-add_library(cplat ${LIB_SOURCES})
-if(NOT WINDOWS_BUILD)
+add_library(cplat STATIC ${LIB_SOURCES})
+if(WIN32)
+    target_link_libraries(cplat PUBLIC user32)
+else()
     target_include_directories(cplat PRIVATE ${X11_INCLUDE_DIR})
     target_link_libraries(cplat PRIVATE ${X11_LIBRARIES})
 endif()
 
 # CPLAT test executable
 add_executable(cplat_test ${SOURCES})
-target_include_directories(cplat_test PRIVATE "${CMAKE_SOURCE_DIR}/include")
-target_link_libraries(cplat_test PRIVATE cplat)
+target_include_directories(cplat_test PUBLIC "${CMAKE_SOURCE_DIR}/include")
+target_link_libraries(cplat_test PUBLIC cplat)
 
