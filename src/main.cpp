@@ -2,6 +2,9 @@
 #define CP_ABORT_ON_ASSERT_FAIL
 #include <cplat.h>
 
+#include <thread>
+
+
 int main()
 {
     CP_Window window;
@@ -20,12 +23,15 @@ int main()
         return -2;
     }
 
-    for(CP_WindowEvent event = {}; // zero initialise
+    std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+
+    for(CP_WindowEvent event = CP_get_next_event(&window); // zero initialise
         event.type != CP_EVENT_QUIT; // end loop if user quits
         event = CP_get_next_event(&window)) // get next event
     {
-
     }
 
     CP_destroy_window(&window);
+
+    CP_log_info("closed gracefully");
 }

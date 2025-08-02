@@ -50,8 +50,13 @@ struct st_cp_window
     HWND hwnd;
 };
 #elif defined(CP_LINUX)
+#include <xcb/xcb.h>
+#include <xcb/xcb_util.h>
 struct st_cp_window
 {
+    xcb_connection_t *connection;
+    xcb_screen_t* screen;
+    xcb_window_t windowId;
 };
 #endif
 

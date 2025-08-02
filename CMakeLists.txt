@@ -40,7 +40,7 @@ if(WIN32)
     target_link_libraries(cplat PUBLIC user32)
 else()
     target_include_directories(cplat PRIVATE ${X11_INCLUDE_DIR})
-    target_link_libraries(cplat PRIVATE ${X11_LIBRARIES})
+    target_link_libraries(cplat PRIVATE ${X11_LIBRARIES} xcb xcb-util xcb-icccm)
 endif()
 
 # CPLAT test executable
