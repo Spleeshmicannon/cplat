@@ -25,7 +25,9 @@
 #include "logger.h"
 
 #include <stdbool.h>
+#ifdef CP_EXIT_ON_ASSERT_FAIL
 #include <stdlib.h>
+#endif
 
 #ifdef CP_ASSERT_ENABLED
 static CP_INLINE void cp_assert(const char* const file, const int line, bool expr)

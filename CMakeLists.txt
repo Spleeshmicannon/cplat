@@ -13,9 +13,9 @@ file(GLOB_RECURSE LIB_SOURCES
 )
 
 if(WIN32)
-    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -mwindows -static -static-libgcc")
+    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -mwindows")
 else()
-    find_package(X11 REQUIRED)
+    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS}")
 endif()
 
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wextra -Werror -Wstrict-overflow=3 -Wimplicit -Wconversion -Wformat -O2 -std=c99")
@@ -39,8 +39,7 @@ add_library(cplat STATIC ${LIB_SOURCES})
 if(WIN32)
     target_link_libraries(cplat PUBLIC user32)
 else()
-    target_include_directories(cplat PRIVATE ${X11_INCLUDE_DIR})
-    target_link_libraries(cplat PRIVATE ${X11_LIBRARIES} xcb xcb-util xcb-icccm)
+    target_link_libraries(cplat PRIVATE xcb xcb-util xcb-icccm)
 endif()
 
 # CPLAT test executable
