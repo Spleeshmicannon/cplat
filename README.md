@@ -1,12 +1,15 @@
 # CPLAT (C Platform Library)
 This is a platform library written in c99. It's made to be simple to use, while giving easy acces
 to internals from whatever platform is being targeted.
-> Warning: This is still a ==work in progress==, do not expect this to be useful yet.
-> The current development progress is thus:
-> - [x] Get window opening/closing working on Windows
-> - [x] Get window opening/closing working on Linux
-> - [x] Get window event management working on Windows
-> - [ ] Get window event management working on Linux
+
+> [!WARNING]
+> This is still a work in progress, do not expect this to be useful yet.
+
+The current development progress is thus:
+- [x] Get window opening/closing working on Windows
+- [x] Get window opening/closing working on Linux
+- [x] Get window event management working on Windows
+- [ ] Get window event management working on Linux
 
 
 ## Building
@@ -23,7 +26,6 @@ cmake --build .
 ```
 
 ## Usage
-Going to the src/main.cpp file you'll see the following:
 ```CPP
 #include <cplat.h>
 
@@ -38,20 +40,19 @@ int main()
         .windowName = "test"
     };
 
-    CP_ERROR error = CP_create_window(&window, &config);
+    CP_ERROR error = CP_createWindow(&window, &config);
     if(error != CP_ERROR_SUCCESS)
     {
         CP_log_fatal("CP failed to create window");
         return -2;
     }
 
-    for(CP_WindowEvent event = {}; // zero initialise
+    for(CP_WindowEvent event = CP_getNextEvent(&window); // zero initialise
         event.type != CP_EVENT_QUIT; // end loop if user quits
-        event = CP_get_next_event(&window)) // get next event
+        event = CP_getNextEvent(&window)) // get next event
     {
-
     }
 
-    CP_destroy_window(&window);
+    CP_destroyWindow(&window);
 }
 ```
