@@ -1,6 +1,13 @@
 # CPLAT (C Platform Library)
 This is a platform library written in c99. It's made to be simple to use, while giving easy acces
 to internals from whatever platform is being targeted.
+> Warning: This is still a ==work in progress==, do not expect this to be useful yet.
+> The current development progress is thus:
+> - [x] Get window opening/closing working on Windows
+> - [x] Get window opening/closing working on Linux
+> - [x] Get window event management working on Windows
+> - [ ] Get window event management working on Linux
+
 
 ## Building
 You can build with the following cmake commands, assuming your in a 

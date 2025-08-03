@@ -26,7 +26,7 @@ static CP_INLINE const char* CP_log_level_to_string(CP_LOG_LEVEL level)
     return ll_strings[level];
 }
 
-void CP_log_message(CP_LOG_LEVEL level, const char* message, ...)
+void CP_logMessage(CP_LOG_LEVEL level, const char* message, ...)
 {
     // create time string
     time_t t = time(NULL);
@@ -53,5 +53,6 @@ void CP_log_message(CP_LOG_LEVEL level, const char* message, ...)
     else
     {
         printf("[%s.%09ld][%s] %s\n", time_buffer, ts.tv_nsec, CP_log_level_to_string(level), formatted_message);
+        fflush(stdout);
     }
 }

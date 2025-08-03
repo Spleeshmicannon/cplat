@@ -27,6 +27,7 @@
 extern "C" {
 #endif
 
+#include "cplat/input.h"
 #include "cplat/macros.h"
 #include "cplat/logger.h"
 #include "cplat/asserts.h"
@@ -42,8 +43,6 @@ typedef struct st_cp_window CP_Window;
 #include <windows.h>
 #include <windowsx.h>
 
-#include <stdint.h>
-
 struct st_cp_window
 {
     HINSTANCE hinst;
@@ -52,11 +51,14 @@ struct st_cp_window
 #elif defined(CP_LINUX)
 #include <xcb/xcb.h>
 #include <xcb/xcb_util.h>
+
 struct st_cp_window
 {
     xcb_connection_t *connection;
     xcb_screen_t* screen;
     xcb_window_t windowId;
+    xcb_atom_t wmDeleteProtocol;
+    xcb_atom_t wmProtocols;
 };
 #endif
 
@@ -99,6 +101,7 @@ typedef struct
     union 
     {
         uint32_t key;
+        uint32_t mouseButton;
         int32_t mWheel;
         struct 
         {
@@ -108,9 +111,9 @@ typedef struct
 } 
 CP_WindowEvent;
 
-CP_ERROR CP_create_window(CP_Window*const window, const CP_WindowConfig* const configm);
-CP_WindowEvent CP_get_next_event(CP_Window*const window);
-void CP_destroy_window(CP_Window*const window);
+CP_ERROR CP_createWindow(CP_Window*const window, const CP_WindowConfig* const configm);
+CP_WindowEvent CP_getNextEvent(CP_Window*const window);
+void CP_destroyWindow(CP_Window*const window);
 
 #ifdef __cplusplus
 }
