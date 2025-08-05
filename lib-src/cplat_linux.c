@@ -22,7 +22,15 @@
 #ifdef CP_LINUX
 
 #include <string.h>
+#include <stdlib.h>
+
 #include <xcb/xcb_icccm.h>
+
+#define XK_LATIN1
+#define XK_MISCELLANY
+#include <X11/keysymdef.h>
+
+CP_INLINE CP_KEY CP_xcbKeyToCPkey(xcb_keysym_t keycode);
 
 CP_ERROR CP_createWindow(CP_Window*const window, const CP_WindowConfig* const config)
 {
@@ -144,6 +152,8 @@ CP_ERROR CP_createWindow(CP_Window*const window, const CP_WindowConfig* const co
         return CP_ERROR_OS_CALL_FAILED;
     }
 
+    window->keySymbols = xcb_key_symbols_alloc(window->connection);
+
     return CP_ERROR_SUCCESS;
 }
 
@@ -158,8 +168,63 @@ CP_WindowEvent CP_getNextEvent(CP_Window*const window)
         return event;
     }
 
-    switch(XCB_EVENT_RESPONSE_TYPE(xcb_event))
+    switch(XCB_EVENT_RESPONSE_TYPE(xcb_event)) // TODO implement mouse wheel
     {
+        case XCB_KEY_PRESS:
+        {
+            const xcb_key_press_event_t*const kb_event = (xcb_key_press_event_t*)&xcb_event;
+
+            event.type = CP_EVENT_KEYDOWN;
+            event.key = CP_xcbKeyToCPkey(
+                xcb_key_symbols_get_keysym(window->keySymbols, kb_event->detail, 0)
+            );
+            break;
+        }
+        case XCB_KEY_RELEASE:
+        {
+            const xcb_key_release_event_t*const kb_event = (xcb_key_press_event_t*)&xcb_event;
+
+            event.type = CP_EVENT_KEYDOWN;
+            event.key = CP_xcbKeyToCPkey(
+                xcb_key_symbols_get_keysym(window->keySymbols, kb_event->detail, 0)
+            );
+            break;
+        }
+        case XCB_MOTION_NOTIFY:
+        {
+            const xcb_motion_notify_event_t*const mn_event = (xcb_motion_notify_event_t*)&xcb_event;
+
+            event.type = CP_EVENT_MOUSEMOVE;
+            event.mx = (uint16_t)mn_event->root_x;
+            event.my = (uint16_t)mn_event->root_y;
+            break;
+        }
+        case XCB_BUTTON_PRESS:
+        {
+            const xcb_button_press_event_t*const mn_event = (xcb_button_press_event_t*)&xcb_event;
+            
+            switch(mn_event->detail)
+            {
+                case XCB_BUTTON_INDEX_1: event.type = CP_EVENT_LBUTTONDOWN;
+                case XCB_BUTTON_INDEX_2: event.type = CP_EVENT_MBUTTONDOWN;
+                case XCB_BUTTON_INDEX_3: event.type = CP_EVENT_RBUTTONDOWN;
+                default: break;
+            }
+            break;
+        }
+        case XCB_BUTTON_RELEASE:
+        {
+            const xcb_button_release_event_t*const mn_event = (xcb_button_press_event_t*)&xcb_event;
+            
+            switch(mn_event->detail)
+            {
+                case XCB_BUTTON_INDEX_1: event.type = CP_EVENT_LBUTTONUP;
+                case XCB_BUTTON_INDEX_2: event.type = CP_EVENT_MBUTTONUP;
+                case XCB_BUTTON_INDEX_3: event.type = CP_EVENT_RBUTTONUP;
+                default: break;
+            }
+            break;
+        }
         case XCB_CLIENT_MESSAGE:
         {
             xcb_client_message_event_t* client_message_event = (xcb_client_message_event_t*)xcb_event;
@@ -179,8 +244,154 @@ CP_WindowEvent CP_getNextEvent(CP_Window*const window)
 
 void CP_destroyWindow(CP_Window*const window)
 {
+    xcb_key_symbols_free(window->keySymbols);
     xcb_destroy_window(window->connection, window->windowId);
     xcb_disconnect(window->connection);
+}
+
+CP_INLINE CP_KEY CP_xcbKeyToCPkey(xcb_keysym_t keysym)
+{
+    switch(keysym)
+    {
+		case XK_BackSpace: return CP_KEY_BACKSPACE;
+		case XK_Return: return CP_KEY_ENTER;
+		case XK_Tab: return CP_KEY_TAB;
+		case XK_Pause: return CP_KEY_PAUSE;
+		case XK_Caps_Lock: return CP_KEY_CAPITAL;
+		case XK_Escape: return CP_KEY_ESCAPE;
+        case XK_Henkan: return CP_KEY_CONVERT;
+        case XK_Muhenkan: return CP_KEY_NONCONVERT;
+		case XK_Mode_switch: return CP_KEY_MODECHANGE;
+		case XK_space: return CP_KEY_SPACE;
+		case XK_Prior: return CP_KEY_PRIOR;
+		case XK_Next: return CP_KEY_NEXT;
+		case XK_End: return CP_KEY_END;
+		case XK_Home: return CP_KEY_HOME;
+		case XK_Left: return CP_KEY_LEFT;
+		case XK_Up: return CP_KEY_UP;
+		case XK_Right: return CP_KEY_RIGHT;
+		case XK_Down: return CP_KEY_DOWN;
+		case XK_Select: return CP_KEY_SELECT;
+		case XK_Print: return CP_KEY_PRINT;
+		case XK_Execute:return CP_KEY_EXECUTE;
+		case XK_Insert: return CP_KEY_INSERT;
+		case XK_Delete: return CP_KEY_TDELETE;
+		case XK_Help: return CP_KEY_HELP;
+        case XK_Super_L:
+		case XK_Meta_L: return CP_KEY_LWIN;
+        case XK_Super_R:
+        case XK_Meta_R: return CP_KEY_RWIN;
+        case XK_Menu: return CP_KEY_APPS;
+		case XK_KP_0: return CP_KEY_NUMPAD0;
+		case XK_KP_1: return CP_KEY_NUMPAD1;
+		case XK_KP_2: return CP_KEY_NUMPAD2;
+		case XK_KP_3: return CP_KEY_NUMPAD3;
+		case XK_KP_4: return CP_KEY_NUMPAD4;
+		case XK_KP_5: return CP_KEY_NUMPAD5;
+		case XK_KP_6: return CP_KEY_NUMPAD6;
+		case XK_KP_7: return CP_KEY_NUMPAD7;
+		case XK_KP_8: return CP_KEY_NUMPAD8;
+		case XK_KP_9: return CP_KEY_NUMPAD9;
+		case XK_multiply: return CP_KEY_MULTIPLY;
+		case XK_KP_Add: return CP_KEY_ADD;
+		case XK_KP_Separator: return CP_KEY_SEPARATOR;
+		case XK_KP_Subtract: return CP_KEY_SUBTRACT;
+		case XK_KP_Decimal: return CP_KEY_DECIMAL;
+		case XK_KP_Divide: return CP_KEY_DIVIDE;
+		case XK_F1: return CP_KEY_F1;
+		case XK_F2: return CP_KEY_F2;
+		case XK_F3: return CP_KEY_F3;
+		case XK_F4: return CP_KEY_F4;
+		case XK_F5: return CP_KEY_F5;
+		case XK_F6: return CP_KEY_F6;
+		case XK_F7: return CP_KEY_F7;
+		case XK_F8: return CP_KEY_F8;
+		case XK_F9: return CP_KEY_F9;
+		case XK_F10: return CP_KEY_F10;
+		case XK_F11: return CP_KEY_F11;
+		case XK_F12: return CP_KEY_F12;
+		case XK_F13: return CP_KEY_F13;
+		case XK_F14: return CP_KEY_F14;
+		case XK_F15: return CP_KEY_F15;
+		case XK_F16: return CP_KEY_F16;
+		case XK_F17: return CP_KEY_F17;
+		case XK_F18: return CP_KEY_F18;
+		case XK_F19: return CP_KEY_F19;
+		case XK_F20: return CP_KEY_F20;
+		case XK_F21: return CP_KEY_F21;
+		case XK_F22: return CP_KEY_F22;
+		case XK_F23: return CP_KEY_F23;
+		case XK_F24: return CP_KEY_F24;
+		case XK_Num_Lock: return CP_KEY_NUMLOCK;
+		case XK_Scroll_Lock: return CP_KEY_SCROLL;
+		case XK_KP_Equal: return CP_KEY_NUMPAD_EQUAL;
+		case XK_Shift_L: return CP_KEY_LSHIFT;
+		case XK_Shift_R: return CP_KEY_RSHIFT;
+		case XK_Control_L: return CP_KEY_LCONTROL;
+		case XK_Control_R: return CP_KEY_RCONTROL;
+		case XK_Alt_L: return CP_KEY_LALT;
+		case XK_Alt_R: return CP_KEY_RALT;
+		case XK_semicolon: return CP_KEY_SEMICOLON;
+		case XK_plus: return CP_KEY_PLUS;
+		case XK_comma: return CP_KEY_COMMA;
+		case XK_minus: return CP_KEY_MINUS;
+		case XK_period: return CP_KEY_PERIOD;
+		case XK_slash: return CP_KEY_SLASH;
+		case XK_grave: return CP_KEY_GRAVE;
+		case XK_a:
+		case XK_A: return CP_KEY_A;
+		case XK_b:
+		case XK_B: return CP_KEY_B;
+		case XK_c:
+		case XK_C: return CP_KEY_C;
+		case XK_d:
+		case XK_D: return CP_KEY_D;
+		case XK_e:
+		case XK_E: return CP_KEY_E;
+		case XK_f:
+		case XK_F: return CP_KEY_F;
+		case XK_g:
+		case XK_G: return CP_KEY_G;
+		case XK_h:
+		case XK_H: return CP_KEY_H;
+		case XK_i:
+		case XK_I: return CP_KEY_I;
+		case XK_j:
+		case XK_J: return CP_KEY_J;
+		case XK_k:
+		case XK_K: return CP_KEY_K;
+		case XK_l:
+		case XK_L: return CP_KEY_L;
+		case XK_m:
+		case XK_M: return CP_KEY_M;
+		case XK_n:
+		case XK_N: return CP_KEY_N;
+		case XK_o:
+		case XK_O: return CP_KEY_O;
+		case XK_p:
+		case XK_P: return CP_KEY_P;
+		case XK_q:
+		case XK_Q: return CP_KEY_Q;
+		case XK_r:
+		case XK_R: return CP_KEY_R;
+		case XK_s:
+		case XK_S: return CP_KEY_S;
+		case XK_t:
+		case XK_T: return CP_KEY_T;
+		case XK_u:
+		case XK_U: return CP_KEY_U;
+		case XK_v:
+		case XK_V: return CP_KEY_V;
+		case XK_w:
+		case XK_W: return CP_KEY_W;
+		case XK_x:
+		case XK_X: return CP_KEY_X;
+		case XK_y:
+		case XK_Y: return CP_KEY_Y;
+		case XK_z:
+		case XK_Z: return CP_KEY_Z;
+        default: return CP_KEY_MAX_KEYS;
+    }
 }
 
 #endif // CP_LINUX

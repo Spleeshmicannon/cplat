@@ -39,7 +39,7 @@ add_library(cplat STATIC ${LIB_SOURCES})
 if(WIN32)
     target_link_libraries(cplat PUBLIC user32)
 else()
-    target_link_libraries(cplat PRIVATE xcb xcb-util xcb-icccm)
+    target_link_libraries(cplat PRIVATE xcb xcb-util xcb-icccm xcb-keysyms)
 endif()
 
 # CPLAT test executable
