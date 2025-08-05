@@ -9,7 +9,7 @@ The current development progress is thus:
 - [x] Get window opening/closing working on Windows
 - [x] Get window opening/closing working on Linux
 - [x] Get window event management working on Windows
-- [-] Get window event management working on Linux
+- [ ] Get window event management working on Linux (in progress)
 
 
 ## Building
@@ -102,7 +102,7 @@ The CP_KEY enum is a direct copy of what WIN32 defines. This means that translat
 assignment on windows, but doesn't totally match X11. X11 doesn't have XK_CONTROL for instance, just XK_CONTROL_L which shouldn't be an issue, but it will make for some confusing bugs. I'm currently
 weighing up whether or not I should remove the non portable key types.
 
-> [!INFO]
+> [!NOTE]
 > Non-portable key types include (i.e. only works on windows):
 > CP_KEY_SNAPSHOT, CP_KEY_SHIFT, CP_KEY_CONTROL,
 > CP_KEY_ALT, CP_KEY_SLEEP, CP_KEY_ACCEPT
