@@ -23,7 +23,7 @@
 
 LRESULT CALLBACK WIN32_processMessage(HWND hwnd, uint32_t msg, WPARAM wparam, LPARAM lparam);
 
-CP_ERROR CP_create_window(CP_Window*const window, const CP_WindowConfig* const config)
+CP_ERROR CP_createWindow(CP_Window*const window, const CP_WindowConfig* const config)
 {
     CP_log_trace("entering CP_create_window");
 
@@ -106,7 +106,7 @@ CP_ERROR CP_create_window(CP_Window*const window, const CP_WindowConfig* const c
     return CP_ERROR_SUCCESS;
 }
 
-void CP_destroy_window(CP_Window*const window)
+void CP_destroyWindow(CP_Window*const window)
 {
     CP_log_trace("Entering CP_destroy_window");
 
@@ -120,7 +120,7 @@ void CP_destroy_window(CP_Window*const window)
     CP_log_trace("Leaving CP_destroy_window");
 }
 
-CP_WindowEvent CP_get_next_event(CP_Window*const window)
+CP_WindowEvent CP_getNextEvent(CP_Window*const window)
 {
     MSG message;
     CP_WindowEvent event = {0};
@@ -161,7 +161,14 @@ LRESULT CALLBACK WIN32_processMessage(HWND hwnd, uint32_t msg, WPARAM wparam, LP
         case WM_SYSKEYDOWN:
         {
             event->type = CP_EVENT_KEYDOWN;
-            event->key = (uint32_t)wparam;
+            switch((uint32_t)wparam)
+            {
+                case VK_ACCEPT: event->key = CP_KEY_EXECUTE; break;
+                case VK_SNAPSHOT: event->key = CP_KEY_PRINT; break;
+                case VK_SHIFT: event->key = CP_KEY_LSHIFT; break;
+                case VK_CONTROL: event->key = CP_KEY_LCONTROL; break;
+                default: event->key = (uint32_t)wparam; break;
+            }
             break;
         }
         case WM_KEYUP:

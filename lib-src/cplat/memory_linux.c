@@ -24,63 +24,40 @@
 #include "memory.h"
 
 #include <stdlib.h>
+#include <string.h>
 
 #define __USE_GNU
 #include <sys/mman.h>
 
-struct st_cp_mempool
-{
-    void* base;
-    size_t used;
-    size_t size;
-};
-
-CP_MemPool* CP_PoolCreate(size_t bytes)
-{
-    void* base = mmap(NULL, bytes, PROT_READ | PROT_WRITE, MAP_ANONYMOUS | MAP_PRIVATE, -1, 0);
-    if(base == MAP_FAILED)
-    {
-        return NULL;
-    }
-    
-    CP_MemPool* pool = CP_allocate(sizeof(CP_MemPool));
-    pool->base = base;
-    pool->size = bytes;
-
-    return pool;
-}
-
-void* CP_PoolAllocate(CP_MemPool* pool, size_t bytes)
-{
-    if((pool->used + bytes) >= pool->size)
-    {
-        void* newMap = mremap(pool->base, pool->size, pool->size*2, 0);
-        if(newMap == MAP_FAILED)
-        {
-            return NULL;
-        }
-        pool->base = newMap;
-        pool->size = pool->size*2;
-    }
-    void* block = pool->base + pool->used;
-    pool->used += bytes;
-    return block;
-}
-
-void CP_PoolDestory(CP_MemPool* pool)
-{
-    munmap(pool->base, pool->size);
-    free(pool);
-}
-
 void* CP_allocate(const size_t bytes)
 {
-    return malloc(bytes);
+    void* block = malloc(bytes);
+    memset(block, 0, bytes);
+    return block;
 }
 
 void CP_free(void* block)
 {
     free(block);
+}
+
+CP_sysMem CP_sysAllocate(const size_t bytes)
+{
+    return (CP_sysMem){
+        .size = bytes,
+        .block = mmap(NULL, 
+            bytes, 
+            PROT_READ | PROT_WRITE, 
+            MAP_ANONYMOUS | MAP_PRIVATE, // MAP_ANONYMOUS zeros memory
+            -1, 
+            0
+        )
+    };
+}
+
+void CP_sysFree(const CP_sysMem*const mem)
+{
+    munmap(mem->block, mem->size);
 }
 
 #endif // CP_LINUX

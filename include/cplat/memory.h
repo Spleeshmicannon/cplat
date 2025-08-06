@@ -23,13 +23,19 @@
 
 #include <stddef.h>
 
-typedef struct st_cp_mempool CP_MemPool;
+typedef struct
+{
+    const size_t size;
+    void* block;
+}
+CP_sysMem;
 
-CP_MemPool* CP_PoolCreate(size_t bytes);
-void* CP_PoolAllocate(CP_MemPool* pool, size_t bytes);
-void CP_PoolDestory(CP_MemPool* pool);
-
+// cross platform memory allocation for smaller allocations
 void* CP_allocate(const size_t bytes);
 void CP_free(void* block);
+
+// cross platform memory allocation for larger allocations
+CP_sysMem CP_sysAllocate(const size_t bytes);
+void CP_sysFree(const CP_sysMem* const block);
 
 #endif // CP_MEMORY_H

@@ -172,7 +172,7 @@ CP_WindowEvent CP_getNextEvent(CP_Window*const window)
     {
         case XCB_KEY_PRESS:
         {
-            const xcb_key_press_event_t*const kb_event = (xcb_key_press_event_t*)&xcb_event;
+            const xcb_key_press_event_t*const kb_event = (xcb_key_press_event_t*)xcb_event;
 
             event.type = CP_EVENT_KEYDOWN;
             event.key = CP_xcbKeyToCPkey(
@@ -182,7 +182,7 @@ CP_WindowEvent CP_getNextEvent(CP_Window*const window)
         }
         case XCB_KEY_RELEASE:
         {
-            const xcb_key_release_event_t*const kb_event = (xcb_key_press_event_t*)&xcb_event;
+            const xcb_key_release_event_t*const kb_event = (xcb_key_press_event_t*)xcb_event;
 
             event.type = CP_EVENT_KEYDOWN;
             event.key = CP_xcbKeyToCPkey(
@@ -192,7 +192,7 @@ CP_WindowEvent CP_getNextEvent(CP_Window*const window)
         }
         case XCB_MOTION_NOTIFY:
         {
-            const xcb_motion_notify_event_t*const mn_event = (xcb_motion_notify_event_t*)&xcb_event;
+            const xcb_motion_notify_event_t*const mn_event = (xcb_motion_notify_event_t*)xcb_event;
 
             event.type = CP_EVENT_MOUSEMOVE;
             event.mx = (uint16_t)mn_event->root_x;
@@ -201,26 +201,26 @@ CP_WindowEvent CP_getNextEvent(CP_Window*const window)
         }
         case XCB_BUTTON_PRESS:
         {
-            const xcb_button_press_event_t*const mn_event = (xcb_button_press_event_t*)&xcb_event;
+            const xcb_button_press_event_t*const mn_event = (xcb_button_press_event_t*)xcb_event;
             
             switch(mn_event->detail)
             {
-                case XCB_BUTTON_INDEX_1: event.type = CP_EVENT_LBUTTONDOWN;
-                case XCB_BUTTON_INDEX_2: event.type = CP_EVENT_MBUTTONDOWN;
-                case XCB_BUTTON_INDEX_3: event.type = CP_EVENT_RBUTTONDOWN;
+                case XCB_BUTTON_INDEX_1: event.type = CP_EVENT_LBUTTONDOWN; break;
+                case XCB_BUTTON_INDEX_2: event.type = CP_EVENT_MBUTTONDOWN; break;
+                case XCB_BUTTON_INDEX_3: event.type = CP_EVENT_RBUTTONDOWN; break;
                 default: break;
             }
             break;
         }
         case XCB_BUTTON_RELEASE:
         {
-            const xcb_button_release_event_t*const mn_event = (xcb_button_press_event_t*)&xcb_event;
+            const xcb_button_release_event_t*const mn_event = (xcb_button_press_event_t*)xcb_event;
             
             switch(mn_event->detail)
             {
-                case XCB_BUTTON_INDEX_1: event.type = CP_EVENT_LBUTTONUP;
-                case XCB_BUTTON_INDEX_2: event.type = CP_EVENT_MBUTTONUP;
-                case XCB_BUTTON_INDEX_3: event.type = CP_EVENT_RBUTTONUP;
+                case XCB_BUTTON_INDEX_1: event.type = CP_EVENT_LBUTTONUP; break;
+                case XCB_BUTTON_INDEX_2: event.type = CP_EVENT_MBUTTONUP; break;
+                case XCB_BUTTON_INDEX_3: event.type = CP_EVENT_RBUTTONUP; break;
                 default: break;
             }
             break;

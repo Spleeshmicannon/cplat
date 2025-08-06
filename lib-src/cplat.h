@@ -112,7 +112,7 @@ typedef struct
 } 
 CP_WindowEvent;
 
-CP_ERROR CP_createWindow(CP_Window*const window, const CP_WindowConfig* const configm);
+CP_ERROR CP_createWindow(CP_Window*const window, const CP_WindowConfig* const config);
 CP_WindowEvent CP_getNextEvent(CP_Window*const window);
 void CP_destroyWindow(CP_Window*const window);
 

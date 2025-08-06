@@ -60,7 +60,7 @@ int main()
 ## Explanation of implementation
 Here I'm just going to go into some detail about design decisions.
 
-### Exposed the native APIs
+### Exposed the native window APIs
 This code excerpt is from `cplat.h` and directly exposes the data in CP_Window (typdefed).
 There is a tradeoff here, in that if you access the struct fields in your code it will no longer
 be portable. That said, you can add `CP_WIN32/CP_LINUX` and `#ifdefs` to make those sections portable.
@@ -96,20 +96,4 @@ struct st_cp_window
 };
 #endif
 ```
-
-### Limitations of CP_KEY
-The CP_KEY enum is a direct copy of what WIN32 defines. This means that translating keys is a simple
-assignment on windows, but doesn't totally match X11. X11 doesn't have XK_CONTROL for instance, just XK_CONTROL_L which shouldn't be an issue, but it will make for some confusing bugs. I'm currently
-weighing up whether or not I should remove the non portable key types.
-
-> [!NOTE]
-> Non-portable key types include (i.e. only works on windows):
-> CP_KEY_SNAPSHOT, CP_KEY_SHIFT, CP_KEY_CONTROL,
-> CP_KEY_ALT, CP_KEY_SLEEP, CP_KEY_ACCEPT
-
-Note that these all have analagous cross platform versions like 
-CP_KEY_ACCEPT being the same as XK_Execute or 
-VK_EXECUTE (CP_KEY_EXECUTE). If you are using these keys you
-are probably aware of the edge cases and until I tighten things up
-in this space, you're probably better off investigating the code.
 

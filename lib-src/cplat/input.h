@@ -8,8 +8,6 @@ typedef enum : uint32_t
     CP_KEY_BACKSPACE = 0x08,
     CP_KEY_ENTER = 0x0D,
     CP_KEY_TAB = 0x09,
-    CP_KEY_SHIFT = 0x10,
-    CP_KEY_CONTROL = 0x11,
 
     CP_KEY_PAUSE = 0x13,
     CP_KEY_CAPITAL = 0x14,
@@ -18,7 +16,6 @@ typedef enum : uint32_t
 
     CP_KEY_CONVERT = 0x1C,
     CP_KEY_NONCONVERT = 0x1D,
-    CP_KEY_ACCEPT = 0x1E,
     CP_KEY_MODECHANGE = 0x1F,
 
     CP_KEY_SPACE = 0x20,
@@ -33,7 +30,6 @@ typedef enum : uint32_t
     CP_KEY_SELECT = 0x29,
     CP_KEY_PRINT = 0x2A,
     CP_KEY_EXECUTE = 0x2B,
-    CP_KEY_SNAPSHOT = 0x2C,
     CP_KEY_INSERT = 0x2D,
     CP_KEY_TDELETE = 0x2E,
     CP_KEY_HELP = 0x2F,
