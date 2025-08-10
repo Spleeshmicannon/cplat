@@ -133,4 +133,125 @@ typedef enum : uint32_t
 }
 CP_KEY;
 
+static inline const char* CP_keyToString(CP_KEY key)
+{
+    switch(key)
+    {
+        case CP_KEY_BACKSPACE: return "CP_KEY_BACKSPACE";
+        case CP_KEY_ENTER: return "CP_KEY_ENTER";
+        case CP_KEY_TAB: return "CP_KEY_TAB";
+        case CP_KEY_PAUSE: return "CP_KEY_PAUSE";
+        case CP_KEY_CAPITAL: return "CP_KEY_CAPITAL";
+        case CP_KEY_ESCAPE: return "CP_KEY_ESCAPE";
+        case CP_KEY_CONVERT: return "CP_KEY_CONVERT";
+        case CP_KEY_NONCONVERT: return "CP_KEY_NONCONVERT";
+        case CP_KEY_MODECHANGE: return "CP_KEY_MODECHANGE";
+        case CP_KEY_SPACE: return "CP_KEY_SPACE";
+        case CP_KEY_PRIOR: return "CP_KEY_PRIOR";
+        case CP_KEY_NEXT: return "CP_KEY_NEXT";
+        case CP_KEY_END: return "CP_KEY_END";
+        case CP_KEY_HOME: return "CP_KEY_HOME";
+        case CP_KEY_LEFT: return "CP_KEY_LEFT";
+        case CP_KEY_UP: return "CP_KEY_UP";
+        case CP_KEY_RIGHT: return "CP_KEY_RIGHT";
+        case CP_KEY_DOWN: return "CP_KEY_DOWN";
+        case CP_KEY_SELECT: return "CP_KEY_SELECT";
+        case CP_KEY_PRINT: return "CP_KEY_PRINT";
+        case CP_KEY_EXECUTE: return "CP_KEY_EXECUTE";
+        case CP_KEY_INSERT: return "CP_KEY_INSERT";
+        case CP_KEY_TDELETE: return "CP_KEY_TDELETE";
+        case CP_KEY_HELP: return "CP_KEY_HELP";
+        case CP_KEY_A: return "CP_KEY_A";
+        case CP_KEY_B: return "CP_KEY_B";
+        case CP_KEY_C: return "CP_KEY_C";
+        case CP_KEY_D: return "CP_KEY_D";
+        case CP_KEY_E: return "CP_KEY_E";
+        case CP_KEY_F: return "CP_KEY_F";
+        case CP_KEY_G: return "CP_KEY_G";
+        case CP_KEY_H: return "CP_KEY_H";
+        case CP_KEY_I: return "CP_KEY_I";
+        case CP_KEY_J: return "CP_KEY_J";
+        case CP_KEY_K: return "CP_KEY_K";
+        case CP_KEY_L: return "CP_KEY_L";
+        case CP_KEY_M: return "CP_KEY_M";
+        case CP_KEY_N: return "CP_KEY_N";
+        case CP_KEY_O: return "CP_KEY_O";
+        case CP_KEY_P: return "CP_KEY_P";
+        case CP_KEY_Q: return "CP_KEY_Q";
+        case CP_KEY_R: return "CP_KEY_R";
+        case CP_KEY_S: return "CP_KEY_S";
+        case CP_KEY_T: return "CP_KEY_T";
+        case CP_KEY_U: return "CP_KEY_U";
+        case CP_KEY_V: return "CP_KEY_V";
+        case CP_KEY_W: return "CP_KEY_W";
+        case CP_KEY_X: return "CP_KEY_X";
+        case CP_KEY_Y: return "CP_KEY_Y";
+        case CP_KEY_Z: return "CP_KEY_Z";
+        case CP_KEY_LWIN: return "CP_KEY_LWIN";
+        case CP_KEY_RWIN: return "CP_KEY_RWIN";
+        case CP_KEY_APPS: return "CP_KEY_APPS";
+        case CP_KEY_SLEEP: return "CP_KEY_SLEEP";
+        case CP_KEY_NUMPAD0: return "CP_KEY_NUMPAD0";
+        case CP_KEY_NUMPAD1: return "CP_KEY_NUMPAD1";
+        case CP_KEY_NUMPAD2: return "CP_KEY_NUMPAD2";
+        case CP_KEY_NUMPAD3: return "CP_KEY_NUMPAD3";
+        case CP_KEY_NUMPAD4: return "CP_KEY_NUMPAD4";
+        case CP_KEY_NUMPAD5: return "CP_KEY_NUMPAD5";
+        case CP_KEY_NUMPAD6: return "CP_KEY_NUMPAD6";
+        case CP_KEY_NUMPAD7: return "CP_KEY_NUMPAD7";
+        case CP_KEY_NUMPAD8: return "CP_KEY_NUMPAD8";
+        case CP_KEY_NUMPAD9: return "CP_KEY_NUMPAD9";
+        case CP_KEY_MULTIPLY: return "CP_KEY_MULTIPLY";
+        case CP_KEY_ADD: return "CP_KEY_ADD";
+        case CP_KEY_SEPARATOR: return "CP_KEY_SEPARATOR";
+        case CP_KEY_SUBTRACT: return "CP_KEY_SUBTRACT";
+        case CP_KEY_DECIMAL: return "CP_KEY_DECIMAL";
+        case CP_KEY_DIVIDE: return "CP_KEY_DIVIDE";
+        case CP_KEY_F1: return "CP_KEY_F1";
+        case CP_KEY_F2: return "CP_KEY_F2";
+        case CP_KEY_F3: return "CP_KEY_F3";
+        case CP_KEY_F4: return "CP_KEY_F4";
+        case CP_KEY_F5: return "CP_KEY_F5";
+        case CP_KEY_F6: return "CP_KEY_F6";
+        case CP_KEY_F7: return "CP_KEY_F7";
+        case CP_KEY_F8: return "CP_KEY_F8";
+        case CP_KEY_F9: return "CP_KEY_F9";
+        case CP_KEY_F10: return "CP_KEY_F10";
+        case CP_KEY_F11: return "CP_KEY_F11";
+        case CP_KEY_F12: return "CP_KEY_F12";
+        case CP_KEY_F13: return "CP_KEY_F13";
+        case CP_KEY_F14: return "CP_KEY_F14";
+        case CP_KEY_F15: return "CP_KEY_F15";
+        case CP_KEY_F16: return "CP_KEY_F16";
+        case CP_KEY_F17: return "CP_KEY_F17";
+        case CP_KEY_F18: return "CP_KEY_F18";
+        case CP_KEY_F19: return "CP_KEY_F19";
+        case CP_KEY_F20: return "CP_KEY_F20";
+        case CP_KEY_F21: return "CP_KEY_F21";
+        case CP_KEY_F22: return "CP_KEY_F22";
+        case CP_KEY_F23: return "CP_KEY_F23";
+        case CP_KEY_F24: return "CP_KEY_F24";
+        case CP_KEY_NUMLOCK: return "CP_KEY_NUMLOCK";
+        case CP_KEY_SCROLL: return "CP_KEY_SCROLL";
+        case CP_KEY_NUMPAD_EQUAL: return "CP_KEY_NUMPAD_EQUAL";
+        case CP_KEY_LSHIFT: return "CP_KEY_LSHIFT";
+        case CP_KEY_RSHIFT: return "CP_KEY_RSHIFT";
+        case CP_KEY_LCONTROL: return "CP_KEY_LCONTROL";
+        case CP_KEY_RCONTROL: return "CP_KEY_RCONTROL";
+        case CP_KEY_LALT: return "CP_KEY_LALT";
+        case CP_KEY_RALT: return "CP_KEY_RALT";
+        case CP_KEY_SEMICOLON: return "CP_KEY_SEMICOLON";
+        case CP_KEY_PLUS: return "CP_KEY_PLUS";
+        case CP_KEY_COMMA: return "CP_KEY_COMMA";
+        case CP_KEY_MINUS: return "CP_KEY_MINUS";
+        case CP_KEY_PERIOD: return "CP_KEY_PERIOD";
+        case CP_KEY_SLASH: return "CP_KEY_SLASH";
+        case CP_KEY_GRAVE: return "CP_KEY_GRAVE";
+        case CP_KEY_MAX_KEYS: return "CP_KEY_MAX_KEYS";
+        default: return "";
+    }
+}
+
+
+
 #endif // INPUT_H

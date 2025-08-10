@@ -41,6 +41,7 @@ CP_ERROR CP_createWindow(CP_Window*const window, const CP_WindowConfig* const co
     window->connection = xcb_connect(NULL, &screen_count);
     if(window->connection == NULL)
     {
+        CP_log_error("null xcb connection");
         return CP_ERROR_OS_CALL_FAILED;
     }
     
@@ -48,6 +49,7 @@ CP_ERROR CP_createWindow(CP_Window*const window, const CP_WindowConfig* const co
     window->screen = xcb_aux_get_screen(window->connection, screen_count);
     if(window->screen == NULL)
     {
+        CP_log_error("unable to get screen");
         return CP_ERROR_OS_CALL_FAILED;
     }
     
@@ -55,6 +57,7 @@ CP_ERROR CP_createWindow(CP_Window*const window, const CP_WindowConfig* const co
     window->windowId = xcb_generate_id(window->connection);
     if(window->windowId == 0)
     {
+        CP_log_error("failed to generate window id");
         return CP_ERROR_OS_CALL_FAILED;
     }
     
@@ -149,6 +152,7 @@ CP_ERROR CP_createWindow(CP_Window*const window, const CP_WindowConfig* const co
     xcb_map_window(window->connection, window->windowId);
     if(xcb_flush(window->connection) <= 0)
     {
+        CP_log_error("failed to xcb flush");
         return CP_ERROR_OS_CALL_FAILED;
     }
 
@@ -178,6 +182,9 @@ CP_WindowEvent CP_getNextEvent(CP_Window*const window)
             event.key = CP_xcbKeyToCPkey(
                 xcb_key_symbols_get_keysym(window->keySymbols, kb_event->detail, 0)
             );
+#ifdef CP_DEBUG
+            CP_log_trace("key press of %s", CP_keyToString(event.key));
+#endif
             break;
         }
         case XCB_KEY_RELEASE:
@@ -185,9 +192,10 @@ CP_WindowEvent CP_getNextEvent(CP_Window*const window)
             const xcb_key_release_event_t*const kb_event = (xcb_key_press_event_t*)xcb_event;
 
             event.type = CP_EVENT_KEYDOWN;
-            event.key = CP_xcbKeyToCPkey(
-                xcb_key_symbols_get_keysym(window->keySymbols, kb_event->detail, 0)
-            );
+            event.key = CP_xcbKeyToCPkey( xcb_key_symbols_get_keysym(window->keySymbols, kb_event->detail, 0));
+#ifdef CP_DEBUG
+            CP_log_trace("key release of %s", CP_keyToString(event.key));
+#endif   
             break;
         }
         case XCB_MOTION_NOTIFY:
@@ -197,6 +205,8 @@ CP_WindowEvent CP_getNextEvent(CP_Window*const window)
             event.type = CP_EVENT_MOUSEMOVE;
             event.mx = (uint16_t)mn_event->root_x;
             event.my = (uint16_t)mn_event->root_y;
+
+            CP_log_trace("mouse motion at %d, %d", event.mx, event.my);
             break;
         }
         case XCB_BUTTON_PRESS:
@@ -205,9 +215,32 @@ CP_WindowEvent CP_getNextEvent(CP_Window*const window)
             
             switch(mn_event->detail)
             {
-                case XCB_BUTTON_INDEX_1: event.type = CP_EVENT_LBUTTONDOWN; break;
-                case XCB_BUTTON_INDEX_2: event.type = CP_EVENT_MBUTTONDOWN; break;
-                case XCB_BUTTON_INDEX_3: event.type = CP_EVENT_RBUTTONDOWN; break;
+                case XCB_BUTTON_INDEX_1: 
+                    event.type = CP_EVENT_LBUTTONDOWN; 
+                    CP_log_trace("left mouse button");
+                    break;
+                case XCB_BUTTON_INDEX_2: 
+                    event.type = CP_EVENT_MBUTTONDOWN; 
+                    CP_log_trace("middle mouse button");
+                    break;
+                case XCB_BUTTON_INDEX_3: 
+                    event.type = CP_EVENT_RBUTTONDOWN; 
+                    CP_log_trace("right mouse button");
+                    break;
+                case XCB_BUTTON_INDEX_4:
+                {
+                    event.type = CP_EVENT_MOUSEWHEEL;
+                    event.mWheel = 1;
+                    CP_log_trace("mouse up");
+                    break;
+                }
+                case XCB_BUTTON_INDEX_5:
+                {
+                    event.type = CP_EVENT_MOUSEWHEEL;
+                    event.mWheel = -1;
+                    CP_log_trace("mouse down");
+                    break;
+                }
                 default: break;
             }
             break;
@@ -218,9 +251,18 @@ CP_WindowEvent CP_getNextEvent(CP_Window*const window)
             
             switch(mn_event->detail)
             {
-                case XCB_BUTTON_INDEX_1: event.type = CP_EVENT_LBUTTONUP; break;
-                case XCB_BUTTON_INDEX_2: event.type = CP_EVENT_MBUTTONUP; break;
-                case XCB_BUTTON_INDEX_3: event.type = CP_EVENT_RBUTTONUP; break;
+                case XCB_BUTTON_INDEX_1: 
+                    event.type = CP_EVENT_LBUTTONUP; 
+                    CP_log_trace("left mouse button up");
+                    break;
+                case XCB_BUTTON_INDEX_2: 
+                    event.type = CP_EVENT_MBUTTONUP; 
+                    CP_log_trace("middle mouse button up");
+                    break;
+                case XCB_BUTTON_INDEX_3: 
+                    event.type = CP_EVENT_RBUTTONUP; 
+                    CP_log_trace("right mouse button up");
+                    break;
                 default: break;
             }
             break;
@@ -232,6 +274,7 @@ CP_WindowEvent CP_getNextEvent(CP_Window*const window)
                (client_message_event->data.data32[0] == window->wmDeleteProtocol))
             {
                 event.type = CP_EVENT_QUIT;
+                CP_log_trace("quit event");
             }
             break;
         }
@@ -282,16 +325,26 @@ CP_INLINE CP_KEY CP_xcbKeyToCPkey(xcb_keysym_t keysym)
         case XK_Super_R:
         case XK_Meta_R: return CP_KEY_RWIN;
         case XK_Menu: return CP_KEY_APPS;
+        case XK_0:
 		case XK_KP_0: return CP_KEY_NUMPAD0;
-		case XK_KP_1: return CP_KEY_NUMPAD1;
-		case XK_KP_2: return CP_KEY_NUMPAD2;
-		case XK_KP_3: return CP_KEY_NUMPAD3;
-		case XK_KP_4: return CP_KEY_NUMPAD4;
-		case XK_KP_5: return CP_KEY_NUMPAD5;
-		case XK_KP_6: return CP_KEY_NUMPAD6;
-		case XK_KP_7: return CP_KEY_NUMPAD7;
-		case XK_KP_8: return CP_KEY_NUMPAD8;
-		case XK_KP_9: return CP_KEY_NUMPAD9;
+        case XK_1:
+        case XK_KP_1: return CP_KEY_NUMPAD1;
+        case XK_2:
+        case XK_KP_2: return CP_KEY_NUMPAD2;
+        case XK_3:
+        case XK_KP_3: return CP_KEY_NUMPAD3;
+        case XK_4:
+        case XK_KP_4: return CP_KEY_NUMPAD4;
+        case XK_5:
+        case XK_KP_5: return CP_KEY_NUMPAD5;
+        case XK_6:
+        case XK_KP_6: return CP_KEY_NUMPAD6;
+        case XK_7:
+        case XK_KP_7: return CP_KEY_NUMPAD7;
+        case XK_8:
+        case XK_KP_8: return CP_KEY_NUMPAD8;
+        case XK_9:
+        case XK_KP_9: return CP_KEY_NUMPAD9;
 		case XK_multiply: return CP_KEY_MULTIPLY;
 		case XK_KP_Add: return CP_KEY_ADD;
 		case XK_KP_Separator: return CP_KEY_SEPARATOR;

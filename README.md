@@ -9,7 +9,8 @@ The current development progress is thus:
 - [x] Get window opening/closing working on Windows
 - [x] Get window opening/closing working on Linux
 - [x] Get window event management working on Windows
-- [ ] Get window event management working on Linux (in progress)
+- [x] Get window event management working on Linux
+- [ ] Bug Fixes and extensions for weird keys and controllers
 
 
 ## Building
