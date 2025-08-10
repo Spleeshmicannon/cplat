@@ -40,7 +40,7 @@ if(WIN32)
     target_link_libraries(cplat PUBLIC user32)
 else()
     target_compile_definitions(cplat PRIVATE NO_LOGGING)
-    target_link_libraries(cplat PRIVATE xcb xcb-util xcb-icccm xcb-keysyms)
+    target_link_libraries(cplat PUBLIC xcb xcb-util xcb-icccm xcb-keysyms)
 endif()
 
 # CPLAT test executable
