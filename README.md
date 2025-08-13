@@ -50,7 +50,7 @@ int main()
         return -2;
     }
 
-    for(CP_WindowEvent event = CP_getNextEvent(&window); // zero initialise
+    for(CP_WindowEvent event = CP_getNextEvent(&window);
         event.type != CP_EVENT_QUIT; // end loop if user quits
         event = CP_getNextEvent(&window)) // get next event
     {
