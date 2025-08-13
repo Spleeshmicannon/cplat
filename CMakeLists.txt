@@ -4,12 +4,12 @@ Project(cplat_project)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 file(GLOB_RECURSE SOURCES 
-    "${CMAKE_SOURCE_DIR}/src/*.cpp"
-    "${CMAKE_SOURCE_DIR}/src/*.c"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/*.c"
 )
 
 file(GLOB_RECURSE LIB_SOURCES
-    "${CMAKE_SOURCE_DIR}/lib-src/*.c"
+    "${CMAKE_CURRENT_SOURCE_DIR}/lib-src/*.c"
 )
 
 if(WIN32)
@@ -21,8 +21,8 @@ endif()
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wextra -Werror -Wstrict-overflow=3 -Wimplicit -Wconversion -Wformat -O2 -std=c99")
 
 # copying header files to include dir
-set(SOURCE_DIR "${CMAKE_SOURCE_DIR}/lib-src")
-set(DEST_DIR "${CMAKE_SOURCE_DIR}/include")
+set(SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/lib-src")
+set(DEST_DIR "${CMAKE_CURRENT_SOURCE_DIR}/include")
 
 file(GLOB_RECURSE HEADER_FILES RELATIVE "${SOURCE_DIR}" "${SOURCE_DIR}/*.h")
 
@@ -45,6 +45,6 @@ endif()
 
 # CPLAT test executable
 add_executable(cplat_test ${SOURCES})
-target_include_directories(cplat_test PUBLIC "${CMAKE_SOURCE_DIR}/include")
+target_include_directories(cplat_test PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include")
 target_link_libraries(cplat_test PUBLIC cplat)
 
