@@ -22,20 +22,14 @@
 #define CP_MEMORY_H
 
 #include <stddef.h>
-
-typedef struct
-{
-    const size_t size;
-    void* block;
-}
-CP_sysMem;
+#include <stdbool.h>
 
 // cross platform memory allocation for smaller allocations
 void* CP_allocate(const size_t bytes);
 void CP_free(void* block);
 
 // cross platform memory allocation for larger allocations
-CP_sysMem CP_sysAllocate(const size_t bytes);
-void CP_sysFree(const CP_sysMem* const block);
+void* CP_sysAllocate(const size_t bytes);
+bool CP_sysFree(void* block);
 
 #endif // CP_MEMORY_H

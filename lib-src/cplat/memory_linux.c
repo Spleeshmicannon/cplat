@@ -41,23 +41,32 @@ void CP_free(void* block)
     free(block);
 }
 
-CP_sysMem CP_sysAllocate(const size_t bytes)
+void* CP_sysAllocate(const size_t bytes)
 {
-    return (CP_sysMem){
-        .size = bytes,
-        .block = mmap(NULL, 
-            bytes, 
-            PROT_READ | PROT_WRITE, 
-            MAP_ANONYMOUS | MAP_PRIVATE, // MAP_ANONYMOUS zeros memory
-            -1, 
-            0
-        )
-    };
+    void* block = mmap(NULL, 
+        bytes + sizeof(size_t), 
+        PROT_READ | PROT_WRITE, 
+        MAP_ANONYMOUS | MAP_PRIVATE, // MAP_ANONYMOUS zeros memory
+        -1, 
+        0
+    );
+
+    if(block == MAP_FAILED)
+    {
+        return NULL;
+    }
+
+    // storing size in memory allocation
+    *(size_t*)block = bytes + sizeof(size_t);
+
+    return (char*)block + sizeof(size_t);
 }
 
-void CP_sysFree(const CP_sysMem*const mem)
+bool CP_sysFree(void* block)
 {
-    munmap(mem->block, mem->size);
+    // decrementing block to get memory allocation size
+    block = (char*)block - sizeof(size_t);
+    return munmap(block, *(size_t*)block) == 0;
 }
 
 #endif // CP_LINUX
