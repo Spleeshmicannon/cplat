@@ -8,8 +8,7 @@ int main()
     CP_WindowConfig config = {
         .width = 1920,
         .height = 1080,
-        .x = 100,
-        .y = 100,
+        .flags = CP_WINDOW_FLAGS_INIT_OPENGL,
         .windowName = "test"
     };
 
@@ -20,6 +19,12 @@ int main()
         return -2;
     }
 
+    if(CP_ERROR_SUCCESS != CP_setOpenGLVersion(&window, 4,1))
+    {
+        CP_log_fatal("Failed to set opengl version");
+        return -3;
+    }
+
     for(CP_WindowEvent event = CP_getNextEvent(&window); // zero initialise
         event.type != CP_EVENT_QUIT; // end loop if user quits
         event = CP_getNextEvent(&window)) // get next event
@@ -27,6 +32,4 @@ int main()
     }
 
     CP_destroyWindow(&window);
-
-    CP_log_info("closed gracefully");
 }

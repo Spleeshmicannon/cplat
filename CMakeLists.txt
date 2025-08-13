@@ -37,7 +37,7 @@ endforeach()
 # CPLAT Libray
 add_library(cplat STATIC ${LIB_SOURCES})
 if(WIN32)
-    target_link_libraries(cplat PUBLIC user32)
+    target_link_libraries(cplat PUBLIC opengl32 gdi32)
 else()
     target_compile_definitions(cplat PRIVATE NO_LOGGING)
     target_link_libraries(cplat PUBLIC xcb xcb-util xcb-icccm xcb-keysyms)

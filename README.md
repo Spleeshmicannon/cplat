@@ -10,7 +10,11 @@ The current development progress is thus:
 - [x] Get window opening/closing working on Linux
 - [x] Get window event management working on Windows
 - [x] Get window event management working on Linux
-- [ ] Bug Fixes and extensions for weird keys and controllers
+- [x] (optional) OpenGL context initialisation on Windows
+- [ ] (optional) OpenGL context initialisation on Linux
+- [ ] (optional) Vulkan context initialisation on Windows
+- [ ] (optional) Vulkan context initialisation on Linux
+- [ ] Polish and extensions for weird keys and controllers
 
 
 ## Building
@@ -36,8 +40,6 @@ int main()
     CP_WindowConfig config = {
         .width = 1920,
         .height = 1080,
-        .x = 100,
-        .y = 100,
         .windowName = "test"
     };
 
@@ -62,39 +64,7 @@ int main()
 Here I'm just going to go into some detail about design decisions.
 
 ### Exposed the native window APIs
-This code excerpt is from `cplat.h` and directly exposes the data in CP_Window (typdefed).
+Cplat exposes the native api by directly exposing the data in CP_Window. This makes the library
+easy to integrate with other software and easy to extend.
 There is a tradeoff here, in that if you access the struct fields in your code it will no longer
-be portable. That said, you can add `CP_WIN32/CP_LINUX` and `#ifdefs` to make those sections portable.
-If I didn't do this CP_Window (if exposed at all) could only be used as a pointer by user code meaning
-that you either need to point to struct in a CPP file (harder to have multiple windows) or you do a
-heap allocation (not super efficient).
-```CPP
-typedef struct st_cp_window CP_Window;
-
-#ifdef CP_WIN32
-#define WIN32_LEAN_AND_MEAN
-#include <windows.h>
-#include <windowsx.h>
-
-struct st_cp_window
-{
-    HINSTANCE hinst;
-    HWND hwnd;
-};
-#elif defined(CP_LINUX)
-#include <xcb/xcb.h>
-#include <xcb/xcb_util.h>
-#include <xcb/xcb_keysyms.h>
-
-struct st_cp_window
-{
-    xcb_connection_t *connection;
-    xcb_screen_t* screen;
-    xcb_window_t windowId;
-    xcb_atom_t wmDeleteProtocol;
-    xcb_atom_t wmProtocols;
-    xcb_key_symbols_t* keySymbols;
-};
-#endif
-```
-
+be portable. That said, you can add `CP_WIN32/CP_LINUX` in `#ifdefs` to make those sections portable.

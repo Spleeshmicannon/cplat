@@ -33,40 +33,37 @@ extern "C" {
 #include "cplat/asserts.h"
 #include "cplat/memory.h"
 
+#ifdef CP_WIN32
+#include "cplat_exposed_native/window_windows.h"
+#elif defined(CP_LINUX)
+#include "cplat_exposed_native/window_linux.h"
+#endif
+
 #include <stdbool.h>
 #include <stdint.h>
 
 typedef struct st_cp_window CP_Window;
 
-#ifdef CP_WIN32
-#define WIN32_LEAN_AND_MEAN
-#include <windows.h>
-#include <windowsx.h>
-
-struct st_cp_window
+typedef enum : uint8_t
 {
-    HINSTANCE hinst;
-    HWND hwnd;
-};
-#elif defined(CP_LINUX)
-#include <xcb/xcb.h>
-#include <xcb/xcb_util.h>
-#include <xcb/xcb_keysyms.h>
+    CP_WINDOW_FLAGS_FULLSCREEN      = 0x01,
+    CP_WINDOW_FLAGS_BORDERLESS      = 0x02,
+    // TODO: CP_WINDOW_FLAGS_RESIVEABLE      = 0x04, 
+    // TODO: CP_WINDOW_FLAGS_KEYBOARD_CAP    = 0x08,
+    CP_WINDOW_FLAGS_MOUSE_CAP       = 0x10,
+    CP_WINDOW_FLAGS_INIT_OPENGL     = 0x20,
+    // TODO: CP_WINDOW_FLAGS_INIT_VULKAN     = 0x40,
 
-struct st_cp_window
-{
-    xcb_connection_t *connection;
-    xcb_screen_t* screen;
-    xcb_window_t windowId;
-    xcb_atom_t wmDeleteProtocol;
-    xcb_atom_t wmProtocols;
-    xcb_key_symbols_t* keySymbols;
-};
-#endif
+    CP_WINDOW_FLAGS_NONE            = 0x00
+}
+CP_WINDOW_FLAGS;
+
 
 typedef struct 
 {
-    uint16_t width, height, x, y;
+    uint16_t width, height;
+    CP_WINDOW_FLAGS flags;
+    uint32_t version; // only used for vulkan/opengl
     const char* windowName;
 } 
 CP_WindowConfig;
@@ -113,6 +110,18 @@ typedef struct
 CP_WindowEvent;
 
 CP_ERROR CP_createWindow(CP_Window*const window, const CP_WindowConfig* const config);
+
+CP_ERROR CP_setOpenGLVersion(CP_Window*const window, int majorVersion, int minorVersion);
+
+static inline void CP_OpenGLSwapBuffers(CP_Window*const window)
+{
+#ifdef CP_WIN32
+    SwapBuffers(window->opengl.device);
+#else
+    return;
+#endif
+}
+
 CP_WindowEvent CP_getNextEvent(CP_Window*const window);
 void CP_destroyWindow(CP_Window*const window);
 

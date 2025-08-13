@@ -25,8 +25,6 @@ LRESULT CALLBACK WIN32_processMessage(HWND hwnd, uint32_t msg, WPARAM wparam, LP
 
 CP_ERROR CP_createWindow(CP_Window*const window, const CP_WindowConfig* const config)
 {
-    CP_log_trace("entering CP_create_window");
-
     if(config == NULL)
     {
         return CP_ERROR_NULL_CONFIG;
@@ -67,9 +65,31 @@ CP_ERROR CP_createWindow(CP_Window*const window, const CP_WindowConfig* const co
     }
     
     // Setting window options
+    // CP_WINDOW_FLAGS_FULLSCREEN      = 0x01,
+    // CP_WINDOW_FLAGS_BORDERLESS      = 0x02,
+    // CP_WINDOW_FLAGS_RESIVEABLE      = 0x04,
+    // CP_WINDOW_FLAGS_KEYBOARD_CAP    = 0x08,
+    // CP_WINDOW_FLAGS_MOUSE_CAP       = 0x10,
+    // CP_WINDOW_FLAGS_INIT_OPENGL     = 0x20,
+    // CP_WINDOW_FLAGS_INIT_VULKAN     = 0x40,
     RECT borderRect = {0,0,0,0};
-    const uint32_t windowStyle = WS_OVERLAPPED | WS_SYSMENU;
-    const uint32_t windowExStyle = WS_EX_APPWINDOW | WS_MAXIMIZEBOX | WS_MINIMIZEBOX;
+    uint32_t windowStyle = WS_OVERLAPPED | WS_SYSMENU;
+    
+    if(!(config->flags & CP_WINDOW_FLAGS_BORDERLESS))
+    {
+        windowStyle |= WS_BORDER;
+    }
+
+    int window_width = config->width;
+    int window_height = config->height;
+
+    if(config->flags & CP_WINDOW_FLAGS_FULLSCREEN)
+    {
+        window_width = GetSystemMetrics(SM_CXSCREEN);
+        window_height = GetSystemMetrics(SM_CYSCREEN);
+    }
+
+    uint32_t windowExStyle = WS_EX_APPWINDOW | WS_MAXIMIZEBOX | WS_MINIMIZEBOX;
 
     AdjustWindowRectEx(
         &borderRect, 
@@ -86,8 +106,8 @@ CP_ERROR CP_createWindow(CP_Window*const window, const CP_WindowConfig* const co
         windowStyle,
         CW_USEDEFAULT,
         CW_USEDEFAULT,
-        (int)config->width,
-        (int)config->height,
+        window_width,
+        window_height,
         NULL,
         NULL,
         window->hinst,
@@ -102,22 +122,103 @@ CP_ERROR CP_createWindow(CP_Window*const window, const CP_WindowConfig* const co
 
     ShowWindow(window->hwnd, SW_SHOW);
 
-    CP_log_trace("Leaving CP_create_window");
+    if(config->flags & CP_WINDOW_FLAGS_MOUSE_CAP)
+    {
+        SetCapture(window->hwnd);
+    }
+
+    if(config->flags & CP_WINDOW_FLAGS_INIT_OPENGL)
+    {
+        window->opengl.device = GetDC(window->hwnd);
+        
+        PIXELFORMATDESCRIPTOR pfd = {0};
+        pfd.nSize = sizeof(PIXELFORMATDESCRIPTOR);
+        pfd.nVersion = 1;
+        pfd.dwFlags = PFD_DRAW_TO_WINDOW | PFD_SUPPORT_OPENGL | PFD_DOUBLEBUFFER;
+		pfd.iPixelType = PFD_TYPE_RGBA;
+		pfd.cColorBits = 32;
+		pfd.cAlphaBits = 0;
+		pfd.cAccumBits = 0;
+		pfd.cDepthBits = 0;
+		pfd.cStencilBits = 0;
+		pfd.cAuxBuffers = 0;
+		pfd.iLayerType = PFD_MAIN_PLANE;
+
+        SetPixelFormat(window->opengl.device, ChoosePixelFormat(window->opengl.device, &pfd), &pfd);
+        window->opengl.context = wglCreateContext(window->opengl.device);
+
+        if(!wglMakeCurrent(window->opengl.device, window->opengl.context))
+        {
+            CP_log_fatal("Failed to make gl context current");
+            CP_destroyWindow(window);
+            return CP_ERROR_OS_CALL_FAILED;
+        }
+
+    }
+
     return CP_ERROR_SUCCESS;
+}
+
+CP_ERROR CP_setOpenGLVersion(CP_Window*const window, int majorVersion, int minorVersion)
+{
+    PFNWGLCREATECONTEXTATTRIBSARBPROC wglCreateContextAttribsARB = NULL;
+
+    wglCreateContextAttribsARB = (PFNWGLCREATECONTEXTATTRIBSARBPROC)
+        (void*)wglGetProcAddress("wglCreateContextAttribsARB");
+
+    if (!wglCreateContextAttribsARB) {
+        CP_log_error("Failed to retrieve context attributions function")
+        return CP_ERROR_OS_CALL_FAILED;
+    }
+
+    const int attribs[] = {
+        WGL_CONTEXT_MAJOR_VERSION_ARB, majorVersion,
+        WGL_CONTEXT_MINOR_VERSION_ARB, minorVersion,
+        WGL_CONTEXT_PROFILE_MASK_ARB, WGL_CONTEXT_CORE_PROFILE_BIT_ARB, 
+        0
+    };
+
+    const HGLRC context = wglCreateContextAttribsARB(window->opengl.device, 0, attribs);
+    
+    if(!wglMakeCurrent(window->opengl.device, context))
+    {
+        CP_log_error("Failed to make gl context current", majorVersion, minorVersion);
+        wglDeleteContext(context);
+        return CP_ERROR_OS_CALL_FAILED;
+    }
+
+    window->opengl.context = context;
+    
+    const char* ver = (const char*)glGetString(GL_VERSION);
+
+    if(ver != NULL)
+    {
+        CP_log_info("OpenGL version set to: %s", ver);
+    }
+    else
+    {
+        CP_log_error("Failed to set OpenGL version");
+        return CP_ERROR_OS_CALL_FAILED;
+    }
+
+    return CP_ERROR_SUCCESS; 
 }
 
 void CP_destroyWindow(CP_Window*const window)
 {
-    CP_log_trace("Entering CP_destroy_window");
-
     if(window->hwnd != NULL)
     {
+        if(window->opengl.context != NULL)
+        {
+            wglMakeCurrent(window->opengl.device, NULL);
+            ReleaseDC(window->hwnd, window->opengl.device);
+            wglDeleteContext(window->opengl.context);
+        }
+
         DestroyWindow(window->hwnd);
         window->hwnd = NULL;
         window->hinst = NULL;
     }
-
-    CP_log_trace("Leaving CP_destroy_window");
 }
 
 CP_WindowEvent CP_getNextEvent(CP_Window*const window)
@@ -148,12 +249,10 @@ LRESULT CALLBACK WIN32_processMessage(HWND hwnd, uint32_t msg, WPARAM wparam, LP
         case WM_CLOSE:
         {
             event->type= CP_EVENT_QUIT;
-            CP_log_info("close event");
             return 0;
         }
         case WM_DESTROY:
         {
-            CP_log_info("posting quit message");
             PostQuitMessage(0);
             return 0;
         }
