@@ -22,6 +22,7 @@
 #ifdef CP_WIN32
 
 LRESULT CALLBACK WIN32_processMessage(HWND hwnd, uint32_t msg, WPARAM wparam, LPARAM lparam);
+CP_ERROR cp_setOpenGLVersion(CP_Window*const window, int majorVersion, int minorVersion);
 
 CP_ERROR CP_createWindow(CP_Window*const window, const CP_WindowConfig* const config)
 {
@@ -65,13 +66,6 @@ CP_ERROR CP_createWindow(CP_Window*const window, const CP_WindowConfig* const co
     }
     
     // Setting window options
-    // CP_WINDOW_FLAGS_FULLSCREEN      = 0x01,
-    // CP_WINDOW_FLAGS_BORDERLESS      = 0x02,
-    // CP_WINDOW_FLAGS_RESIVEABLE      = 0x04,
-    // CP_WINDOW_FLAGS_KEYBOARD_CAP    = 0x08,
-    // CP_WINDOW_FLAGS_MOUSE_CAP       = 0x10,
-    // CP_WINDOW_FLAGS_INIT_OPENGL     = 0x20,
-    // CP_WINDOW_FLAGS_INIT_VULKAN     = 0x40,
     RECT borderRect = {0,0,0,0};
     uint32_t windowStyle = WS_OVERLAPPED | WS_SYSMENU;
     
@@ -152,6 +146,11 @@ CP_ERROR CP_createWindow(CP_Window*const window, const CP_WindowConfig* const co
             CP_log_fatal("Failed to make gl context current");
             CP_destroyWindow(window);
             return CP_ERROR_OS_CALL_FAILED;
+        }
+        
+        if(config->major > 0)
+        {
+            return CP_setOpenGLVersion(window, config->major,config->minor);
         }
 
     }
@@ -245,14 +244,17 @@ LRESULT CALLBACK WIN32_processMessage(HWND hwnd, uint32_t msg, WPARAM wparam, LP
     switch(msg)
     {
         case WM_ERASEBKGND:
+            CP_log_trace("WM_ERASEBKGND event");
             return 1;
         case WM_CLOSE:
         {
+            CP_log_trace("WM_CLOLSE event");
             event->type= CP_EVENT_QUIT;
             return 0;
         }
         case WM_DESTROY:
         {
+            CP_log_trace("WM_DESTROY event");
             PostQuitMessage(0);
             return 0;
         }
@@ -266,15 +268,30 @@ LRESULT CALLBACK WIN32_processMessage(HWND hwnd, uint32_t msg, WPARAM wparam, LP
                 case VK_SNAPSHOT: event->key = CP_KEY_PRINT; break;
                 case VK_SHIFT: event->key = CP_KEY_LSHIFT; break;
                 case VK_CONTROL: event->key = CP_KEY_LCONTROL; break;
+                case VK_MENU: event->key = CP_KEY_LALT; break;
                 default: event->key = (uint32_t)wparam; break;
             }
+            
+            CP_log_trace("key press of %s", CP_keyToString(event->key));
+
             break;
         }
         case WM_KEYUP:
         case WM_SYSKEYUP:
         {
             event->type = CP_EVENT_KEYDOWN;
-            event->key = (uint32_t)wparam;
+            switch((uint32_t)wparam)
+            {
+                case VK_ACCEPT: event->key = CP_KEY_EXECUTE; break;
+                case VK_SNAPSHOT: event->key = CP_KEY_PRINT; break;
+                case VK_SHIFT: event->key = CP_KEY_LSHIFT; break;
+                case VK_CONTROL: event->key = CP_KEY_LCONTROL; break;
+                case VK_MENU: event->key = CP_KEY_LALT; break;
+                default: event->key = (uint32_t)wparam; break;
+            }
+
+            CP_log_trace("key press of %s", CP_keyToString(event->key));
+
             break;
         }
         case WM_MOUSEMOVE:
@@ -282,46 +299,63 @@ LRESULT CALLBACK WIN32_processMessage(HWND hwnd, uint32_t msg, WPARAM wparam, LP
             event->type = CP_EVENT_MOUSEMOVE;
             event->mx = (uint16_t)GET_X_LPARAM(lparam);
             event->my = (uint16_t)GET_Y_LPARAM(lparam);
+            CP_log_trace("Mouse move to %d,%d", event->mx, event->my);
             break;
         }
         case WM_MOUSEWHEEL:
         {
-            event->type = CP_EVENT_MOUSEWHEEL;
             int zDelta = GET_WHEEL_DELTA_WPARAM(wparam);
             if(zDelta != 0)
             {
+                event->type = CP_EVENT_MOUSEWHEEL;
                 event->mWheel = (zDelta < 0) ? -1 : 1;
+#ifdef CP_DEBUG
+                if(event->mWheel == 1)
+                {
+                    CP_log_trace("Mouse Wheel Up");
+                }
+                else
+                {
+                    CP_log_trace("Mouse Wheel Down");
+                }
+#endif
             }
             break;
         }
         case WM_LBUTTONDOWN: 
         {
             event->type = CP_EVENT_LBUTTONDOWN;
+            CP_log_trace("CP_EVENT_LBUTTONDOWN event");
             break;
         }
         case WM_MBUTTONDOWN: 
         {
             event->type = CP_EVENT_MBUTTONDOWN;
+            CP_log_trace("CP_EVENT_MBUTTONDOWN event");
             break;
         }
         case WM_RBUTTONDOWN: 
         {
             event->type = CP_EVENT_RBUTTONDOWN;
+            CP_log_trace("CP_EVENT_RBUTTONDOWN event");
             break;
         }
         case WM_LBUTTONUP: 
         {
             event->type = CP_EVENT_LBUTTONUP;
+            CP_log_trace("CP_EVENT_LBUTTONUP event");
             break;
         }
         case WM_MBUTTONUP: 
         {
             event->type = CP_EVENT_MBUTTONUP;
+            CP_log_trace("CP_EVENT_MBUTTONUP event");
             break;
         }
         case WM_RBUTTONUP: 
         {
             event->type = CP_EVENT_RBUTTONUP;
+            CP_log_trace("CP_EVENT_RBUTTONUP event");
             break;
         }
         default: break;

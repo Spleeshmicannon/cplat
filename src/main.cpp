@@ -9,6 +9,8 @@ int main()
         .width = 1920,
         .height = 1080,
         .flags = CP_WINDOW_FLAGS_INIT_OPENGL,
+        .major = 4,
+        .minor = 3,
         .windowName = "test"
     };
 
@@ -17,12 +19,6 @@ int main()
     {
         CP_log_fatal("CP failed to create window");
         return -2;
-    }
-
-    if(CP_ERROR_SUCCESS != CP_setOpenGLVersion(&window, 4,1))
-    {
-        CP_log_fatal("Failed to set opengl version");
-        return -3;
     }
 
     for(CP_WindowEvent event = CP_getNextEvent(&window); // zero initialise

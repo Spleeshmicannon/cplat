@@ -30,20 +30,31 @@
 #define XK_MISCELLANY
 #include <X11/keysymdef.h>
 
+#include <GL/gl.h>
+
 CP_INLINE CP_KEY CP_xcbKeyToCPkey(xcb_keysym_t keycode);
 
 CP_ERROR CP_createWindow(CP_Window*const window, const CP_WindowConfig* const config)
 {
     int screen_count = 0;
     memset(window, 0, sizeof(CP_Window));
+
+    window->xDisplay = XOpenDisplay(NULL);
+    if(!window->xDisplay)
+    {
+        CP_log_error("Failed to open X Display, is the display variable set?");
+        return CP_ERROR_OS_CALL_FAILED;
+    }
     
     // grab X11 proto connection
-    window->connection = xcb_connect(NULL, &screen_count);
+    window->connection = XGetXCBConnection(window->xDisplay);
     if(window->connection == NULL)
     {
         CP_log_error("null xcb connection");
         return CP_ERROR_OS_CALL_FAILED;
     }
+
+    xcb_aux_get_screen(window->connection, screen_count);
     
     // get the default screen
     window->screen = xcb_aux_get_screen(window->connection, screen_count);
@@ -72,6 +83,15 @@ CP_ERROR CP_createWindow(CP_Window*const window, const CP_WindowConfig* const co
 
     uint32_t value_list[] = { window->screen->black_pixel, event_values };
     
+    uint16_t win_width = config->width;
+    uint16_t win_height = config->height;
+
+    if(config->flags & CP_WINDOW_FLAGS_FULLSCREEN)
+    {
+        win_width = window->screen->width_in_pixels;
+        win_height = window->screen->height_in_pixels;
+    }
+    
     xcb_create_window(
         window->connection, 
         0,
@@ -79,8 +99,8 @@ CP_ERROR CP_createWindow(CP_Window*const window, const CP_WindowConfig* const co
         window->screen->root,
         0,
         0,
-        config->width,
-        config->height,
+        win_width,
+        win_height,
         0,
         XCB_WINDOW_CLASS_INPUT_OUTPUT,
         window->screen->root_visual,
@@ -142,21 +162,185 @@ CP_ERROR CP_createWindow(CP_Window*const window, const CP_WindowConfig* const co
     window->wmDeleteProtocol = window_manager_window_delete_protocol;
     window->wmProtocols = window_manager_protocols_property;
 
-    // setting window size (not resizable)
-    xcb_size_hints_t window_size_hints;
-    xcb_icccm_size_hints_set_min_size(&window_size_hints, config->width, config->height);
-    xcb_icccm_size_hints_set_max_size(&window_size_hints, config->width, config->height);
-    xcb_icccm_set_wm_size_hints(window->connection, window->windowId, XCB_ATOM_WM_NORMAL_HINTS, &window_size_hints);
-    
+    if (config->flags & CP_WINDOW_FLAGS_BORDERLESS)
+    {
+        xcb_atom_t motif_hints_atom;
+        {
+            xcb_intern_atom_cookie_t cookie = 
+                xcb_intern_atom(
+                    window->connection, 
+                    0, 
+                    strlen("_MOTIF_WM_HINTS"), 
+                    "_MOTIF_WM_HINTS"
+                );
+
+            xcb_intern_atom_reply_t *reply = xcb_intern_atom_reply(
+                window->connection, 
+                cookie, 
+                NULL
+            );
+
+            motif_hints_atom = reply->atom;
+            free(reply);
+        }
+
+        struct  
+        {
+            uint32_t flags;
+            uint32_t functions;
+            uint32_t decorations;
+            int32_t  input_mode;
+            uint32_t status;
+        }
+        hints = {0};
+
+        hints.flags = 1L << 1; // necessary?
+        hints.decorations = 0; // no borders, no title
+
+        xcb_change_property(
+            window->connection,
+            XCB_PROP_MODE_REPLACE,
+            window->windowId,
+            motif_hints_atom,
+            motif_hints_atom,
+            32,
+            sizeof(hints) / 4,
+            &hints
+        );
+    }
+
+    if (!(config->flags & CP_WINDOW_FLAGS_RESIZEABLE))
+    {
+        // setting window size 
+        xcb_size_hints_t window_size_hints;
+        xcb_icccm_size_hints_set_min_size(&window_size_hints, config->width, config->height);
+        xcb_icccm_size_hints_set_max_size(&window_size_hints, config->width, config->height);
+        xcb_icccm_set_wm_size_hints(
+            window->connection, 
+            window->windowId, 
+            XCB_ATOM_WM_NORMAL_HINTS, 
+            &window_size_hints
+        );
+    }
+
     // showing the window
     xcb_map_window(window->connection, window->windowId);
     if(xcb_flush(window->connection) <= 0)
     {
+        xcb_destroy_window(window->connection, window->windowId);
+        xcb_disconnect(window->connection);
+
         CP_log_error("failed to xcb flush");
         return CP_ERROR_OS_CALL_FAILED;
     }
 
     window->keySymbols = xcb_key_symbols_alloc(window->connection);
+
+    if(config->flags & CP_WINDOW_FLAGS_INIT_OPENGL)
+    {
+        // Getting the egl display
+        window->opengl.display = eglGetDisplay((EGLNativeDisplayType)window->xDisplay);
+
+        if(window->opengl.display == EGL_NO_DISPLAY)
+        {
+            CP_log_error("Failed to get OpenGL display");
+            return CP_ERROR_GL_CALL_FAILED;
+        }
+
+        // initialize EGL
+        int major, minor;
+        if(!eglInitialize(window->opengl.display, &major, &minor))
+        {
+            CP_log_error("Failed to initialise EGL");
+            return CP_ERROR_GL_CALL_FAILED;
+        }
+
+        CP_log_info("initialized EGL with version %d.%d", major, minor);
+
+        // configure EGL
+        const EGLint configAttribs[] = {
+            EGL_SURFACE_TYPE,    EGL_WINDOW_BIT,
+            EGL_RENDERABLE_TYPE, EGL_OPENGL_BIT,   // For desktop OpenGL
+            EGL_RED_SIZE,        8,
+            EGL_GREEN_SIZE,      8,
+            EGL_BLUE_SIZE,       8,
+            EGL_ALPHA_SIZE,      8,
+            EGL_DEPTH_SIZE,      24,
+            EGL_STENCIL_SIZE,    8,
+            EGL_NONE
+        };
+        EGLConfig eglConfig;
+        EGLint eglConfigNum;
+
+        if(!eglChooseConfig(window->opengl.display, configAttribs, &eglConfig, 1, &eglConfigNum) || 
+        eglConfigNum< 1)
+        {
+            CP_log_error("Failed to setup EGL config");
+            return CP_ERROR_GL_CALL_FAILED;
+        }
+
+        window->opengl.surface = eglCreateWindowSurface(
+            window->opengl.display, 
+            eglConfig, 
+            (EGLNativeWindowType)window->windowId, 
+            NULL
+        );
+
+        if(window->opengl.surface == EGL_NO_SURFACE)
+        {
+            CP_log_error("Failed to create EGL surface");
+            return CP_ERROR_GL_CALL_FAILED;
+        }
+
+        if(!eglBindAPI(EGL_OPENGL_API))
+        {
+            CP_log_error("Failed to bind OpenGL API");
+            return CP_ERROR_GL_CALL_FAILED;
+        }
+
+        const EGLint ctxAttribs[] = {
+            EGL_CONTEXT_MAJOR_VERSION, config->major,
+            EGL_CONTEXT_MINOR_VERSION, config->minor,
+            EGL_CONTEXT_OPENGL_PROFILE_MASK, EGL_CONTEXT_OPENGL_CORE_PROFILE_BIT,
+            EGL_NONE
+        };
+
+        window->opengl.context = eglCreateContext(
+            window->opengl.display, 
+            eglConfig, 
+            EGL_NO_CONTEXT, 
+            ctxAttribs
+        );
+
+
+        if(window->opengl.context == EGL_NO_CONTEXT)
+        {
+            CP_log_error("Failed to create OpenGL context");
+            return CP_ERROR_GL_CALL_FAILED;
+        }
+
+        if(!eglMakeCurrent(
+            window->opengl.display, 
+            window->opengl.surface, 
+            window->opengl.surface, 
+            window->opengl.context))
+        {
+            CP_log_error("Failed to make context current");
+
+        }
+
+        const char* ver = (const char*)glGetString(GL_VERSION);
+
+        if(ver != NULL)
+        {
+            CP_log_info("OpenGL version set to: %s", ver);
+        }
+        else
+        {
+            CP_log_error("Failed to set OpenGL version");
+            return CP_ERROR_OS_CALL_FAILED;
+        }
+    }
 
     return CP_ERROR_SUCCESS;
 }
@@ -182,9 +366,7 @@ CP_WindowEvent CP_getNextEvent(CP_Window*const window)
             event.key = CP_xcbKeyToCPkey(
                 xcb_key_symbols_get_keysym(window->keySymbols, kb_event->detail, 0)
             );
-#ifdef CP_DEBUG
             CP_log_trace("key press of %s", CP_keyToString(event.key));
-#endif
             break;
         }
         case XCB_KEY_RELEASE:
@@ -193,9 +375,7 @@ CP_WindowEvent CP_getNextEvent(CP_Window*const window)
 
             event.type = CP_EVENT_KEYDOWN;
             event.key = CP_xcbKeyToCPkey( xcb_key_symbols_get_keysym(window->keySymbols, kb_event->detail, 0));
-#ifdef CP_DEBUG
             CP_log_trace("key release of %s", CP_keyToString(event.key));
-#endif   
             break;
         }
         case XCB_MOTION_NOTIFY:
@@ -287,12 +467,13 @@ CP_WindowEvent CP_getNextEvent(CP_Window*const window)
 
 void CP_destroyWindow(CP_Window*const window)
 {
+    // TODO destroy opengl vars, if necessary
     xcb_key_symbols_free(window->keySymbols);
     xcb_destroy_window(window->connection, window->windowId);
     xcb_disconnect(window->connection);
 }
 
-CP_INLINE CP_KEY CP_xcbKeyToCPkey(xcb_keysym_t keysym)
+CP_INLINE CP_KEY CP_xcbKeyToCPkey(xcb_keysym_t keysym) // Todo numpad, / and " don't work
 {
     switch(keysym)
     {

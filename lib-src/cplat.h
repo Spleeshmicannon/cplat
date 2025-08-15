@@ -21,13 +21,11 @@
 #ifndef CPLAT_H
 #define CPLAT_H
 
-#define CP_DEBUG
-
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-#include "cplat/input.h"
+#include "cplat/keys.h"
 #include "cplat/macros.h"
 #include "cplat/logger.h"
 #include "cplat/asserts.h"
@@ -42,13 +40,11 @@ extern "C" {
 #include <stdbool.h>
 #include <stdint.h>
 
-typedef struct st_cp_window CP_Window;
-
 typedef enum : uint8_t
 {
     CP_WINDOW_FLAGS_FULLSCREEN      = 0x01,
     CP_WINDOW_FLAGS_BORDERLESS      = 0x02,
-    // TODO: CP_WINDOW_FLAGS_RESIVEABLE      = 0x04, 
+    CP_WINDOW_FLAGS_RESIZEABLE      = 0x04, // no windows support
     // TODO: CP_WINDOW_FLAGS_KEYBOARD_CAP    = 0x08,
     CP_WINDOW_FLAGS_MOUSE_CAP       = 0x10,
     CP_WINDOW_FLAGS_INIT_OPENGL     = 0x20,
@@ -63,7 +59,7 @@ typedef struct
 {
     uint16_t width, height;
     CP_WINDOW_FLAGS flags;
-    uint32_t version; // only used for vulkan/opengl
+    uint8_t major, minor; // only used for vulkan/opengl
     const char* windowName;
 } 
 CP_WindowConfig;
@@ -73,7 +69,8 @@ typedef enum
     CP_ERROR_SUCCESS = 0,
     CP_ERROR_ALLOCATION = 1,
     CP_ERROR_OS_CALL_FAILED = 2,
-    CP_ERROR_NULL_CONFIG = 3
+    CP_ERROR_GL_CALL_FAILED = 3,
+    CP_ERROR_NULL_CONFIG = 4
 } 
 CP_ERROR;
 
@@ -110,17 +107,7 @@ typedef struct
 CP_WindowEvent;
 
 CP_ERROR CP_createWindow(CP_Window*const window, const CP_WindowConfig* const config);
-
 CP_ERROR CP_setOpenGLVersion(CP_Window*const window, int majorVersion, int minorVersion);
-
-static inline void CP_OpenGLSwapBuffers(CP_Window*const window)
-{
-#ifdef CP_WIN32
-    SwapBuffers(window->opengl.device);
-#else
-    return;
-#endif
-}
 
 CP_WindowEvent CP_getNextEvent(CP_Window*const window);
 void CP_destroyWindow(CP_Window*const window);

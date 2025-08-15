@@ -17,7 +17,7 @@ typedef enum : uint32_t
     CP_KEY_CONVERT = 0x1C,
     CP_KEY_NONCONVERT = 0x1D,
     CP_KEY_MODECHANGE = 0x1F,
-
+    
     CP_KEY_SPACE = 0x20,
     CP_KEY_PRIOR = 0x21,
     CP_KEY_NEXT = 0x22,
@@ -77,6 +77,18 @@ typedef enum : uint32_t
     CP_KEY_NUMPAD7 = 0x67,
     CP_KEY_NUMPAD8 = 0x68,
     CP_KEY_NUMPAD9 = 0x69,
+
+    CP_KEY_0 = 0x30,
+    CP_KEY_1 = 0x31,
+    CP_KEY_2 = 0x32,
+    CP_KEY_3 = 0x33,
+    CP_KEY_4 = 0x34,
+    CP_KEY_5 = 0x35,
+    CP_KEY_6 = 0x36,
+    CP_KEY_7 = 0x37,
+    CP_KEY_8 = 0x38,
+    CP_KEY_9 = 0x39,
+
     CP_KEY_MULTIPLY = 0x6A,
     CP_KEY_ADD = 0x6B,
     CP_KEY_SEPARATOR = 0x6C,
@@ -126,8 +138,14 @@ typedef enum : uint32_t
     CP_KEY_COMMA = 0xBC,
     CP_KEY_MINUS = 0xBD,
     CP_KEY_PERIOD = 0xBE,
-    CP_KEY_SLASH = 0xBF,
+    CP_KEY_FORWARD_SLASH = 0xBF,
     CP_KEY_GRAVE = 0xC0,
+
+    CP_KEY_BACK_SLASH = 0xdc,
+    CP_KEY_APOSTRAPHE = 0xde,
+
+    CP_KEY_OPEN_BRACKET = 0xdb,
+    CP_KEY_CLOSE_BRACKET = 0xdd,
 
     CP_KEY_MAX_KEYS = 0xFF
 }
@@ -201,6 +219,16 @@ static inline const char* CP_keyToString(CP_KEY key)
         case CP_KEY_NUMPAD7: return "CP_KEY_NUMPAD7";
         case CP_KEY_NUMPAD8: return "CP_KEY_NUMPAD8";
         case CP_KEY_NUMPAD9: return "CP_KEY_NUMPAD9";
+        case CP_KEY_0: return "CP_KEY_0";
+        case CP_KEY_1: return "CP_KEY_1";
+        case CP_KEY_2: return "CP_KEY_2";
+        case CP_KEY_3: return "CP_KEY_3";
+        case CP_KEY_4: return "CP_KEY_4";
+        case CP_KEY_5: return "CP_KEY_5";
+        case CP_KEY_6: return "CP_KEY_6";
+        case CP_KEY_7: return "CP_KEY_7";
+        case CP_KEY_8: return "CP_KEY_8";
+        case CP_KEY_9: return "CP_KEY_9";
         case CP_KEY_MULTIPLY: return "CP_KEY_MULTIPLY";
         case CP_KEY_ADD: return "CP_KEY_ADD";
         case CP_KEY_SEPARATOR: return "CP_KEY_SEPARATOR";
@@ -245,8 +273,12 @@ static inline const char* CP_keyToString(CP_KEY key)
         case CP_KEY_COMMA: return "CP_KEY_COMMA";
         case CP_KEY_MINUS: return "CP_KEY_MINUS";
         case CP_KEY_PERIOD: return "CP_KEY_PERIOD";
-        case CP_KEY_SLASH: return "CP_KEY_SLASH";
+        case CP_KEY_FORWARD_SLASH: return "CP_KEY_FORWARD_SLASH";
+        case CP_KEY_BACK_SLASH: return "CP_KEY_BACK_SLASH";
         case CP_KEY_GRAVE: return "CP_KEY_GRAVE";
+        case CP_KEY_OPEN_BRACKET: return "CP_KEY_OPEN_BRACKET";
+        case CP_KEY_CLOSE_BRACKET: return "CP_KEY_CLOSE_BRACKET";
+        case CP_KEY_APOSTRAPHE: return "CP_KEY_APOSTRAPHE";
         case CP_KEY_MAX_KEYS: return "CP_KEY_MAX_KEYS";
         default: return "";
     }

@@ -11,10 +11,13 @@ The current development progress is thus:
 - [x] Get window event management working on Windows
 - [x] Get window event management working on Linux
 - [x] (optional) OpenGL context initialisation on Windows
-- [ ] (optional) OpenGL context initialisation on Linux
+- [x] (optional) OpenGL context initialisation on Linux
 - [ ] (optional) Vulkan context initialisation on Windows
 - [ ] (optional) Vulkan context initialisation on Linux
 - [ ] Polish and extensions for weird keys and controllers
+
+The current list of known defects is:
+- X11 (linux) key support is a bit spotty
 
 
 ## Building

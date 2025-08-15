@@ -7,7 +7,7 @@
 #include <GL/gl.h>
 #include <GL/wglext.h>
 
-struct st_cp_window
+typedef struct
 {
     HINSTANCE hinst;
     HWND hwnd;
@@ -16,19 +16,16 @@ struct st_cp_window
             HDC device;
             HGLRC context;
         } opengl;
+        struct {
+
+        } vulkan; // TODO: implement vulkan init
     };
-};
+} CP_Window;
 
-
-#define GLV_MAJOR_VERSION_1  (int)1
-#define GLV_MAJOR_VERSION_2  (int)2
-#define GLV_MAJOR_VERSION_3  (int)3
-#define GLV_MAJOR_VERSION_4  (int)4
-
-#define GLV_MINOR_VERSION_0  (int)0
-#define GLV_MINOR_VERSION_1  (int)1
-#define GLV_MINOR_VERSION_2  (int)2
-#define GLV_MINOR_VERSION_3  (int)3
+static inline void CP_OpenGLSwapBuffers(CP_Window*const window)
+{
+    SwapBuffers(window->opengl.device);
+}
 
 #else
 #error "can't define two native window types at once!"
