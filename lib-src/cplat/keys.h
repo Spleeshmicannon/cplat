@@ -1,6 +1,8 @@
 #ifndef INPUT_H
 #define INPUT_H
 
+#include "logger.h"
+
 #include <stdint.h>
 
 typedef enum : uint32_t
@@ -147,6 +149,8 @@ typedef enum : uint32_t
     CP_KEY_OPEN_BRACKET = 0xdb,
     CP_KEY_CLOSE_BRACKET = 0xdd,
 
+    CP_KEY_BEGIN = 0x0c,
+
     CP_KEY_MAX_KEYS = 0xFF
 }
 CP_KEY;
@@ -279,8 +283,10 @@ static inline const char* CP_keyToString(CP_KEY key)
         case CP_KEY_OPEN_BRACKET: return "CP_KEY_OPEN_BRACKET";
         case CP_KEY_CLOSE_BRACKET: return "CP_KEY_CLOSE_BRACKET";
         case CP_KEY_APOSTRAPHE: return "CP_KEY_APOSTRAPHE";
+        case CP_KEY_BEGIN: return "CP_KEY_BEGIN";
         case CP_KEY_MAX_KEYS: return "CP_KEY_MAX_KEYS";
-        default: return "";
+        default: 
+            return "";
     }
 }
 

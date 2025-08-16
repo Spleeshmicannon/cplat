@@ -16,10 +16,6 @@ The current development progress is thus:
 - [ ] (optional) Vulkan context initialisation on Linux
 - [ ] Polish and extensions for weird keys and controllers
 
-The current list of known defects is:
-- X11 (linux) key support is a bit spotty
-
-
 ## Building
 You can build with the following cmake commands, assuming your in a 
 build subdirectory.

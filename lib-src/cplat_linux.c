@@ -478,7 +478,8 @@ CP_INLINE CP_KEY CP_xcbKeyToCPkey(xcb_keysym_t keysym) // Todo numpad, / and " d
     switch(keysym)
     {
 		case XK_BackSpace: return CP_KEY_BACKSPACE;
-		case XK_Return: return CP_KEY_ENTER;
+		case XK_KP_Enter:
+        case XK_Return: return CP_KEY_ENTER;
 		case XK_Tab: return CP_KEY_TAB;
 		case XK_Pause: return CP_KEY_PAUSE;
 		case XK_Caps_Lock: return CP_KEY_CAPITAL;
@@ -487,52 +488,68 @@ CP_INLINE CP_KEY CP_xcbKeyToCPkey(xcb_keysym_t keysym) // Todo numpad, / and " d
         case XK_Muhenkan: return CP_KEY_NONCONVERT;
 		case XK_Mode_switch: return CP_KEY_MODECHANGE;
 		case XK_space: return CP_KEY_SPACE;
-		case XK_Prior: return CP_KEY_PRIOR;
-		case XK_Next: return CP_KEY_NEXT;
-		case XK_End: return CP_KEY_END;
-		case XK_Home: return CP_KEY_HOME;
-		case XK_Left: return CP_KEY_LEFT;
-		case XK_Up: return CP_KEY_UP;
-		case XK_Right: return CP_KEY_RIGHT;
-		case XK_Down: return CP_KEY_DOWN;
+		case XK_KP_Prior:
+        case XK_Prior: return CP_KEY_PRIOR;
+		case XK_KP_Next:
+        case XK_Next: return CP_KEY_NEXT;
+		case XK_KP_End:
+        case XK_End: return CP_KEY_END;
+		case XK_KP_Home:
+        case XK_Home: return CP_KEY_HOME;
+        case XK_KP_Left:
+        case XK_Left: return CP_KEY_LEFT;
+		case XK_KP_Up:
+        case XK_Up: return CP_KEY_UP;
+		case XK_KP_Right:
+        case XK_Right: return CP_KEY_RIGHT;
+		case XK_KP_Down:
+        case XK_Down: return CP_KEY_DOWN;
 		case XK_Select: return CP_KEY_SELECT;
 		case XK_Print: return CP_KEY_PRINT;
 		case XK_Execute:return CP_KEY_EXECUTE;
-		case XK_Insert: return CP_KEY_INSERT;
-		case XK_Delete: return CP_KEY_TDELETE;
+		case XK_KP_Insert:
+        case XK_Insert: return CP_KEY_INSERT;
+		case XK_KP_Delete:
+        case XK_Delete: return CP_KEY_TDELETE;
 		case XK_Help: return CP_KEY_HELP;
         case XK_Super_L:
 		case XK_Meta_L: return CP_KEY_LWIN;
         case XK_Super_R:
         case XK_Meta_R: return CP_KEY_RWIN;
         case XK_Menu: return CP_KEY_APPS;
-        case XK_0:
+        case XK_KP_Begin: return CP_KEY_BEGIN;
+        case XK_0: return CP_KEY_0;
 		case XK_KP_0: return CP_KEY_NUMPAD0;
-        case XK_1:
+        case XK_1: return CP_KEY_1;
         case XK_KP_1: return CP_KEY_NUMPAD1;
-        case XK_2:
+        case XK_2: return CP_KEY_2;
         case XK_KP_2: return CP_KEY_NUMPAD2;
-        case XK_3:
+        case XK_3: return CP_KEY_3;
         case XK_KP_3: return CP_KEY_NUMPAD3;
-        case XK_4:
+        case XK_4: return CP_KEY_4;
         case XK_KP_4: return CP_KEY_NUMPAD4;
-        case XK_5:
+        case XK_5: return CP_KEY_5;
         case XK_KP_5: return CP_KEY_NUMPAD5;
-        case XK_6:
+        case XK_6: return CP_KEY_6;
         case XK_KP_6: return CP_KEY_NUMPAD6;
-        case XK_7:
+        case XK_7: return CP_KEY_7;
         case XK_KP_7: return CP_KEY_NUMPAD7;
-        case XK_8:
+        case XK_8: return CP_KEY_8;
         case XK_KP_8: return CP_KEY_NUMPAD8;
-        case XK_9:
+        case XK_9: return CP_KEY_9;
         case XK_KP_9: return CP_KEY_NUMPAD9;
+        case XK_KP_Multiply:
 		case XK_multiply: return CP_KEY_MULTIPLY;
 		case XK_KP_Add: return CP_KEY_ADD;
 		case XK_KP_Separator: return CP_KEY_SEPARATOR;
 		case XK_KP_Subtract: return CP_KEY_SUBTRACT;
 		case XK_KP_Decimal: return CP_KEY_DECIMAL;
 		case XK_KP_Divide: return CP_KEY_DIVIDE;
-		case XK_F1: return CP_KEY_F1;
+        case XK_backslash: return CP_KEY_BACK_SLASH;
+        case XK_bracketleft: return CP_KEY_OPEN_BRACKET;
+        case XK_bracketright: return CP_KEY_CLOSE_BRACKET;
+        case XK_apostrophe: return CP_KEY_APOSTRAPHE;
+        case XK_F1: return CP_KEY_F1;
 		case XK_F2: return CP_KEY_F2;
 		case XK_F3: return CP_KEY_F3;
 		case XK_F4: return CP_KEY_F4;
@@ -570,7 +587,7 @@ CP_INLINE CP_KEY CP_xcbKeyToCPkey(xcb_keysym_t keysym) // Todo numpad, / and " d
 		case XK_comma: return CP_KEY_COMMA;
 		case XK_minus: return CP_KEY_MINUS;
 		case XK_period: return CP_KEY_PERIOD;
-		case XK_slash: return CP_KEY_SLASH;
+		case XK_slash: return CP_KEY_FORWARD_SLASH;
 		case XK_grave: return CP_KEY_GRAVE;
 		case XK_a:
 		case XK_A: return CP_KEY_A;
@@ -624,7 +641,9 @@ CP_INLINE CP_KEY CP_xcbKeyToCPkey(xcb_keysym_t keysym) // Todo numpad, / and " d
 		case XK_Y: return CP_KEY_Y;
 		case XK_z:
 		case XK_Z: return CP_KEY_Z;
-        default: return CP_KEY_MAX_KEYS;
+        default: 
+            CP_log_trace("Key 0x%x not found", keysym);
+            return CP_KEY_MAX_KEYS;
     }
 }
 

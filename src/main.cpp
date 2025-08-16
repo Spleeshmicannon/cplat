@@ -5,7 +5,7 @@
 int main()
 {
     CP_Window window;
-    CP_WindowConfig config = {
+    const CP_WindowConfig config = {
         .width = 1920,
         .height = 1080,
         .flags = CP_WINDOW_FLAGS_INIT_OPENGL,
