@@ -32,9 +32,9 @@ extern "C" {
 #include "cplat/memory.h"
 
 #ifdef CP_WIN32
-#include "cplat_exposed_native/window_windows.h"
+#include "cplat_exposed_native/cplat_exposed_windows.h"
 #elif defined(CP_LINUX)
-#include "cplat_exposed_native/window_linux.h"
+#include "cplat_exposed_native/cplat_exposed_linux.h"
 #endif
 
 #include <stdbool.h>

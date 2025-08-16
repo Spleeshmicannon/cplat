@@ -6,7 +6,9 @@
 #include <stdio.h>
 
 #ifdef CP_LINUX
-#define __USE_POSIX199309
+#ifndef __USE_POSIX199309
+#define __USE_POSIX199309 1
+#endif
 #include <sys/time.h>
 #endif
 #include <time.h>

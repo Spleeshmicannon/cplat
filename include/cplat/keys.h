@@ -286,7 +286,6 @@ static inline const char* CP_keyToString(CP_KEY key)
         case CP_KEY_BEGIN: return "CP_KEY_BEGIN";
         case CP_KEY_MAX_KEYS: return "CP_KEY_MAX_KEYS";
         default: 
-            //CP_log_trace("Bad key 0x%x", key);
             return "";
     }
 }

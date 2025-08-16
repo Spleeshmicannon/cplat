@@ -1,6 +1,12 @@
 #ifndef WINDOW_NATIVE
 #define WINDOW_NATIVE
 
+#ifndef __USE_POSIX199309
+#define __USE_POSIX199309 1
+#endif
+#include <sys/time.h>
+#include <time.h>
+
 #include <X11/Xlib-xcb.h> 
 #include <xcb/xcb.h>
 #include <xcb/xcb_util.h>
@@ -35,6 +41,13 @@ typedef struct
 static inline void CP_OpenGLSwapBuffers(CP_Window*const window)
 {
     (void)window;
+}
+
+
+static inline uint64_t CP_getOSNanos(void) {
+    struct timespec ts;
+    clock_gettime(CLOCK_MONOTONIC, &ts);
+    return (uint64_t)ts.tv_sec * 1000000000ull + (uint64_t)ts.tv_nsec;
 }
 
 #else

@@ -38,8 +38,8 @@ endforeach()
 add_library(cplat STATIC ${LIB_SOURCES})
 
 # logging macros
-#target_compile_definitions(cplat PRIVATE NO_LOGGING)
-target_compile_definitions(cplat PRIVATE CP_DEBUG)
+target_compile_definitions(cplat PRIVATE NO_LOGGING)
+#target_compile_definitions(cplat PRIVATE CP_DEBUG)
 
 if(WIN32)
     target_link_libraries(cplat PUBLIC opengl32 gdi32)
