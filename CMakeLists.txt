@@ -18,7 +18,19 @@ else()
     set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS}")
 endif()
 
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wextra -Werror -Wstrict-overflow=3 -Wimplicit -Wconversion -Wformat -O2 -std=c99")
+if(MSVC)
+    add_compile_options(/W4 /WX /O2)
+else()
+    add_compile_options(
+        -Wall 
+        -Wextra 
+        -Werror 
+        -Wstrict-overflow=3 
+        -Wconversion 
+        -Wformat 
+        -O2
+    )
+endif()
 
 # copying header files to include dir
 set(SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/lib-src")
@@ -39,6 +51,7 @@ add_library(cplat STATIC ${LIB_SOURCES})
 
 # logging macros
 target_compile_definitions(cplat PRIVATE NO_LOGGING)
+target_compile_options(cplat PRIVATE -Wimplicit)
 #target_compile_definitions(cplat PRIVATE CP_DEBUG)
 
 if(WIN32)
@@ -46,8 +59,6 @@ if(WIN32)
 else()
     target_link_libraries(cplat PUBLIC xcb xcb-util xcb-icccm xcb-keysyms X11-xcb X11 GL EGL)
 endif()
-
-target_link_libraries(cplat PUBLIC)
 
 # CPLAT test executable
 add_executable(cplat_test ${SOURCES})

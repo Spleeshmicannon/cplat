@@ -23,7 +23,6 @@ int main()
     
     const int64_t incrementNanos = CP_NANOS_IN_ONE*3;
     int64_t nanoSeconds = CP_getNanos();
-    int64_t seconds = CP_getSeconds();
     for(CP_WindowEvent event = CP_getNextEvent(&window); // zero initialise
         event.type != CP_EVENT_QUIT; // end loop if user quits
         event = CP_getNextEvent(&window)) // get next event
