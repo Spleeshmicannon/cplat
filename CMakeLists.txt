@@ -50,7 +50,7 @@ endforeach()
 add_library(cplat STATIC ${LIB_SOURCES})
 
 # logging macros
-target_compile_definitions(cplat PRIVATE NO_LOGGING)
+#target_compile_definitions(cplat PRIVATE NO_LOGGING)
 target_compile_options(cplat PRIVATE -Wimplicit)
 #target_compile_definitions(cplat PRIVATE CP_DEBUG)
 
