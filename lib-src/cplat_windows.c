@@ -220,6 +220,11 @@ void CP_destroyWindow(CP_Window*const window)
     }
 }
 
+void* CP_getGLProcAddress()
+{
+    return wglGetProcAddress;
+}
+
 CP_WindowEvent CP_getNextEvent(CP_Window*const window)
 {
     MSG message;

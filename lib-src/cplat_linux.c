@@ -473,6 +473,11 @@ void CP_destroyWindow(CP_Window*const window)
     xcb_disconnect(window->connection);
 }
 
+void* CP_getGLProcAddress()
+{
+    return eglGetProcAddress;
+}
+
 CP_INLINE CP_KEY CP_xcbKeyToCPkey(xcb_keysym_t keysym) // Todo numpad, / and " don't work
 {
     switch(keysym)

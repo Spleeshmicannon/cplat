@@ -106,6 +106,8 @@ typedef struct
 } 
 CP_WindowEvent;
 
+void* CP_getGLProcAddress();
+
 CP_ERROR CP_createWindow(CP_Window*const window, const CP_WindowConfig* const config);
 CP_ERROR CP_setOpenGLVersion(CP_Window*const window, int majorVersion, int minorVersion);
 
