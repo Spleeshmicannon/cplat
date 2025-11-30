@@ -34,6 +34,12 @@
 
 CP_INLINE CP_KEY CP_xcbKeyToCPkey(xcb_keysym_t keycode);
 
+void getScreenWH(const CP_Window*const window, int*const width, int*const height)
+{
+    if(NULL != width) *width = window->screen->width_in_pixels;
+    if(NULL != height) *height = window->screen->height_in_pixels;
+}
+
 CP_ERROR CP_createWindow(CP_Window*const window, const CP_WindowConfig* const config)
 {
     int screen_count = 0;

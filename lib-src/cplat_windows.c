@@ -24,6 +24,13 @@
 LRESULT CALLBACK WIN32_processMessage(HWND hwnd, uint32_t msg, WPARAM wparam, LPARAM lparam);
 CP_ERROR cp_setOpenGLVersion(CP_Window*const window, int majorVersion, int minorVersion);
 
+void getScreenWH(const CP_Window*const window, int*const width, int*const height)
+{
+    (void)window;
+    if(NULL != width) *width = GetSystemMetrics(SM_CXSCREEN);
+    if(NULL != height) *height = GetSystemMetrics(SM_CYSCREEN);
+}
+
 CP_ERROR CP_createWindow(CP_Window*const window, const CP_WindowConfig* const config)
 {
     if(config == NULL)

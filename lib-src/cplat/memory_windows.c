@@ -3,6 +3,8 @@
 
 #include "memory.h"
 
+#include "logger.h"
+
 #include <windows.h>
 
 void* CP_allocate(const size_t bytes)
@@ -22,16 +24,25 @@ void* CP_sysAllocate(const size_t bytes)
     if (bytes >= largePageSizeMin)
     {
         // bitwise rounding
-        roundedSize = (bytes + largePageSizeMin - 1) & ~(largePageSizeMin - 1);
+        roundedSize =
+            ((bytes + largePageSizeMin - 1) / largePageSizeMin) * largePageSizeMin;
+        CP_log_warn("Allocating with large pages");
     }
 
-    return VirtualAlloc(
+    void* ptr = VirtualAlloc(
         0, 
         roundedSize, 
         MEM_COMMIT | MEM_RESERVE | 
-        (bytes >= GetLargePageMinimum() ? MEM_LARGE_PAGES : 0), 
+        (bytes >= largePageSizeMin ? MEM_LARGE_PAGES : 0), 
         PAGE_READWRITE
     );
+
+    if(NULL == ptr)
+    {
+        CP_log_error("VirtualAlloc failed with error 0x%x", GetLastError())
+    }
+
+    return ptr;
 }
 
 bool CP_sysFree(void* block)
