@@ -24,11 +24,37 @@
 LRESULT CALLBACK WIN32_processMessage(HWND hwnd, uint32_t msg, WPARAM wparam, LPARAM lparam);
 CP_ERROR cp_setOpenGLVersion(CP_Window*const window, int majorVersion, int minorVersion);
 
+void CP_getWindowWH(const CP_Window*const window, int*const width, int*const height)
+{
+    CP_assert(width);
+    CP_assert(height);
+
+    RECT clientRect;
+    GetClientRect(window->hwnd, &clientRect)
+    *width = clientRect.right - clientRect.left;
+    *height = clientRect.bottom - clientRect.top;
+}
+
 void CP_getScreenWH(const CP_Window*const window, int*const width, int*const height)
 {
     (void)window;
-    if(NULL != width) *width = GetSystemMetrics(SM_CXSCREEN);
-    if(NULL != height) *height = GetSystemMetrics(SM_CYSCREEN);
+    CP_assert(width);
+    CP_assert(height);
+    
+    *width = GetSystemMetrics(SM_CXSCREEN);
+    *height = GetSystemMetrics(SM_CYSCREEN);
+}
+
+void CP_getScreenXY(const CP_Window*const window, int*const x, int*const y)
+{
+    CP_assert(width);
+    CP_assert(height);
+    
+    POINT point = {0, 0};
+    ClientToScreen(window->hwnd, &point)
+
+    *width = point.x;
+    *height = point.y; 
 }
 
 CP_ERROR CP_createWindow(CP_Window*const window, const CP_WindowConfig* const config)

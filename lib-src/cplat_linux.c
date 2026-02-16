@@ -19,6 +19,7 @@
 */
 
 #include "cplat.h"
+#include <X11/Xlib.h>
 #ifdef CP_LINUX
 
 #include <string.h>
@@ -34,10 +35,46 @@
 
 CP_INLINE CP_KEY CP_xcbKeyToCPkey(xcb_keysym_t keycode);
 
+void CP_getWindowWH(const CP_Window*const window, int*const width, int*const height)
+{
+    CP_assert(width);
+    CP_assert(height);
+
+    // Use EGL surface dimensions as source of truth
+    eglQuerySurface(window->opengl.display, window->opengl.surface,
+                    EGL_WIDTH, width);
+    eglQuerySurface(window->opengl.display, window->opengl.surface,
+                    EGL_HEIGHT, height);
+}
+
 void CP_getScreenWH(const CP_Window*const window, int*const width, int*const height)
 {
-    if(NULL != width) *width = window->screen->width_in_pixels;
-    if(NULL != height) *height = window->screen->height_in_pixels;
+    CP_assert(width);
+    CP_assert(height);
+    *width = window->screen->width_in_pixels;
+    *height = window->screen->height_in_pixels;
+}
+
+void CP_getScreenXY(const CP_Window*const window, int*const x, int*const y)
+{
+    CP_assert(x);
+    CP_assert(y);
+
+    xcb_get_geometry_cookie_t geom_cookie = xcb_get_geometry(window->connection, window->windowId);
+    xcb_get_geometry_reply_t* geom = xcb_get_geometry_reply(window->connection, geom_cookie, NULL);
+    
+    xcb_translate_coordinates_cookie_t trans_cookie = 
+        xcb_translate_coordinates(window->connection, window->windowId, 
+                                 xcb_setup_roots_iterator(xcb_get_setup(window->connection)).data->root,
+                                 0, 0);
+    xcb_translate_coordinates_reply_t* trans = 
+        xcb_translate_coordinates_reply(window->connection, trans_cookie, NULL);
+    
+    *x = trans->dst_x;
+    *y = trans->dst_y;
+    
+    free(geom);
+    free(trans);
 }
 
 CP_ERROR CP_createWindow(CP_Window*const window, const CP_WindowConfig* const config)
@@ -476,7 +513,7 @@ void CP_destroyWindow(CP_Window*const window)
     // TODO destroy opengl vars, if necessary
     xcb_key_symbols_free(window->keySymbols);
     xcb_destroy_window(window->connection, window->windowId);
-    xcb_disconnect(window->connection);
+    XCloseDisplay(window->xDisplay);
 }
 
 void* CP_getGLProcAddress()

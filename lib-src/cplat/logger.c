@@ -26,6 +26,20 @@ static CP_INLINE const char* CP_log_level_to_string(CP_LOG_LEVEL level)
     return ll_strings[level];
 }
 
+static CP_INLINE const char* CP_log_level_to_colour(CP_LOG_LEVEL level)
+{
+    static const char* ll_strings[] = {
+        "30;101",
+        "1;91",
+        "1;93",
+        "1;94",
+        "1;92",
+        "1;37"
+    };
+
+    return ll_strings[level];
+}
+
 void CP_logMessage(CP_LOG_LEVEL level, const char* message, ...)
 {
     // create time string
@@ -48,11 +62,26 @@ void CP_logMessage(CP_LOG_LEVEL level, const char* message, ...)
     // print formatted message
     if(level <= CP_LOG_ERROR)
     {
-        fprintf(stderr, "[%s.%09ld][%s] %s\n", time_buffer, ts.tv_nsec, CP_log_level_to_string(level), formatted_message);
+        fprintf(
+            stderr, 
+            "[%s.%09ld]\033[%sm[%s] %s\033[0m\n", 
+            time_buffer, 
+            ts.tv_nsec, 
+            CP_log_level_to_colour(level),
+            CP_log_level_to_string(level), 
+            formatted_message
+        );
     }
     else
     {
-        printf("[%s.%09ld][%s] %s\n", time_buffer, ts.tv_nsec, CP_log_level_to_string(level), formatted_message);
+        printf(
+            "[%s.%09ld]\033[%sm[%s] %s\033[0m\n", 
+            time_buffer, 
+            ts.tv_nsec,
+            CP_log_level_to_colour(level),
+            CP_log_level_to_string(level), 
+            formatted_message
+        );
         fflush(stdout);
     }
 }

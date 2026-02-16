@@ -111,7 +111,9 @@ void* CP_getGLProcAddress();
 CP_ERROR CP_createWindow(CP_Window*const window, const CP_WindowConfig* const config);
 CP_ERROR CP_setOpenGLVersion(CP_Window*const window, int majorVersion, int minorVersion);
 
+void CP_getWindowWH(const CP_Window*const window, int*const width, int*const height);
 void CP_getScreenWH(const CP_Window*const window, int*const width, int*const height);
+void CP_getScreenXY(const CP_Window*const window, int*const x, int*const y);
 
 CP_WindowEvent CP_getNextEvent(CP_Window*const window);
 void CP_destroyWindow(CP_Window*const window);

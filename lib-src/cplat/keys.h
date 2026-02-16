@@ -311,6 +311,78 @@ static inline const char* CP_keyToString(CP_KEY key)
     }
 }
 
+static inline char CP_keyToChar(CP_KEY key)
+{
+    switch(key)
+    {
+        case CP_KEY_A: return 'a';
+        case CP_KEY_B: return 'b';
+        case CP_KEY_C: return 'c';
+        case CP_KEY_D: return 'd';
+        case CP_KEY_E: return 'e';
+        case CP_KEY_F: return 'f';
+        case CP_KEY_G: return 'g';
+        case CP_KEY_H: return 'h';
+        case CP_KEY_I: return 'i';
+        case CP_KEY_J: return 'j';
+        case CP_KEY_K: return 'k';
+        case CP_KEY_L: return 'l';
+        case CP_KEY_M: return 'm';
+        case CP_KEY_N: return 'n';
+        case CP_KEY_O: return 'o';
+        case CP_KEY_P: return 'p';
+        case CP_KEY_Q: return 'q';
+        case CP_KEY_R: return 'r';
+        case CP_KEY_S: return 's';
+        case CP_KEY_T: return 't';
+        case CP_KEY_U: return 'u';
+        case CP_KEY_V: return 'v';
+        case CP_KEY_W: return 'w';
+        case CP_KEY_X: return 'x';
+        case CP_KEY_Y: return 'y';
+        case CP_KEY_Z: return 'z';
+        case CP_KEY_NUMPAD0: return '0';
+        case CP_KEY_NUMPAD1: return '1';
+        case CP_KEY_NUMPAD2: return '2';
+        case CP_KEY_NUMPAD3: return '3';
+        case CP_KEY_NUMPAD4: return '4';
+        case CP_KEY_NUMPAD5: return '5';
+        case CP_KEY_NUMPAD6: return '6';
+        case CP_KEY_NUMPAD7: return '7';
+        case CP_KEY_NUMPAD8: return '8';
+        case CP_KEY_NUMPAD9: return '9';
+        case CP_KEY_0: return '0';
+        case CP_KEY_1: return '1';
+        case CP_KEY_2: return '2';
+        case CP_KEY_3: return '3';
+        case CP_KEY_4: return '4';
+        case CP_KEY_5: return '5';
+        case CP_KEY_6: return '6';
+        case CP_KEY_7: return '7';
+        case CP_KEY_8: return '8';
+        case CP_KEY_9: return '9';
+        case CP_KEY_MULTIPLY: return '*';
+        case CP_KEY_ADD: return '+';
+        case CP_KEY_SEPARATOR: return '|';
+        case CP_KEY_SUBTRACT: return '-';
+        case CP_KEY_DECIMAL: return '.';
+        case CP_KEY_DIVIDE: return '/';
+        case CP_KEY_NUMPAD_EQUAL: return '=';
+        case CP_KEY_SEMICOLON: return ';';
+        case CP_KEY_PLUS: return '+';
+        case CP_KEY_COMMA: return ',';
+        case CP_KEY_MINUS: return '-';
+        case CP_KEY_PERIOD: return '.';
+        case CP_KEY_FORWARD_SLASH: return '/';
+        case CP_KEY_BACK_SLASH: return '\\';
+        case CP_KEY_GRAVE: return '`';
+        case CP_KEY_OPEN_BRACKET: return '(';
+        case CP_KEY_CLOSE_BRACKET: return ')';
+        case CP_KEY_APOSTRAPHE: return '"';
+        default: return '\0';
+    }
+}
+
 
 
 #endif // INPUT_H
