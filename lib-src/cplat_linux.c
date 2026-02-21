@@ -19,8 +19,8 @@
 */
 
 #include "cplat.h"
-#include <X11/Xlib.h>
 #ifdef CP_LINUX
+#include <X11/Xlib.h>
 
 #include <string.h>
 #include <stdlib.h>
@@ -383,30 +383,23 @@ CP_ERROR CP_createWindow(CP_Window*const window, const CP_WindowConfig* const co
             CP_log_error("Failed to set OpenGL version");
             return CP_ERROR_OS_CALL_FAILED;
         }
+
+        //eglSwapInterval(window->opengl.display, 0);
     }
 
     return CP_ERROR_SUCCESS;
 }
 
-CP_WindowEvent CP_getNextEvent(CP_Window*const window)
+void CP_processEvent(CP_Window*const window, CP_WindowEvent*const event, xcb_generic_event_t* xcb_event)
 {
-    CP_WindowEvent event = {};
-    xcb_generic_event_t* xcb_event;
-
-    xcb_event = xcb_poll_for_event(window->connection);
-    if(xcb_event == NULL)
-    {
-        return event;
-    }
-
     switch(XCB_EVENT_RESPONSE_TYPE(xcb_event)) // TODO implement mouse wheel
     {
         case XCB_KEY_PRESS:
         {
             const xcb_key_press_event_t*const kb_event = (xcb_key_press_event_t*)xcb_event;
 
-            event.type = CP_EVENT_KEYDOWN;
-            event.key = CP_xcbKeyToCPkey(
+            event->type = CP_EVENT_KEYDOWN;
+            event->key = CP_xcbKeyToCPkey(
                 xcb_key_symbols_get_keysym(window->keySymbols, kb_event->detail, 0)
             );
             CP_log_trace("key press of %s", CP_keyToString(event.key));
@@ -416,8 +409,8 @@ CP_WindowEvent CP_getNextEvent(CP_Window*const window)
         {
             const xcb_key_release_event_t*const kb_event = (xcb_key_press_event_t*)xcb_event;
 
-            event.type = CP_EVENT_KEYDOWN;
-            event.key = CP_xcbKeyToCPkey( xcb_key_symbols_get_keysym(window->keySymbols, kb_event->detail, 0));
+            event->type = CP_EVENT_KEYDOWN;
+            event->key = CP_xcbKeyToCPkey( xcb_key_symbols_get_keysym(window->keySymbols, kb_event->detail, 0));
             CP_log_trace("key release of %s", CP_keyToString(event.key));
             break;
         }
@@ -425,9 +418,9 @@ CP_WindowEvent CP_getNextEvent(CP_Window*const window)
         {
             const xcb_motion_notify_event_t*const mn_event = (xcb_motion_notify_event_t*)xcb_event;
 
-            event.type = CP_EVENT_MOUSEMOVE;
-            event.mx = (uint16_t)mn_event->root_x;
-            event.my = (uint16_t)mn_event->root_y;
+            event->type = CP_EVENT_MOUSEMOVE;
+            event->mx = (uint16_t)mn_event->root_x;
+            event->my = (uint16_t)mn_event->root_y;
 
             CP_log_trace("mouse motion at %d, %d", event.mx, event.my);
             break;
@@ -439,28 +432,28 @@ CP_WindowEvent CP_getNextEvent(CP_Window*const window)
             switch(mn_event->detail)
             {
                 case XCB_BUTTON_INDEX_1: 
-                    event.type = CP_EVENT_LBUTTONDOWN; 
+                    event->type = CP_EVENT_LBUTTONDOWN; 
                     CP_log_trace("left mouse button");
                     break;
                 case XCB_BUTTON_INDEX_2: 
-                    event.type = CP_EVENT_MBUTTONDOWN; 
+                    event->type = CP_EVENT_MBUTTONDOWN; 
                     CP_log_trace("middle mouse button");
                     break;
                 case XCB_BUTTON_INDEX_3: 
-                    event.type = CP_EVENT_RBUTTONDOWN; 
+                    event->type = CP_EVENT_RBUTTONDOWN; 
                     CP_log_trace("right mouse button");
                     break;
                 case XCB_BUTTON_INDEX_4:
                 {
-                    event.type = CP_EVENT_MOUSEWHEEL;
-                    event.mWheel = 1;
+                    event->type = CP_EVENT_MOUSEWHEEL;
+                    event->mWheel = 1;
                     CP_log_trace("mouse up");
                     break;
                 }
                 case XCB_BUTTON_INDEX_5:
                 {
-                    event.type = CP_EVENT_MOUSEWHEEL;
-                    event.mWheel = -1;
+                    event->type = CP_EVENT_MOUSEWHEEL;
+                    event->mWheel = -1;
                     CP_log_trace("mouse down");
                     break;
                 }
@@ -475,15 +468,15 @@ CP_WindowEvent CP_getNextEvent(CP_Window*const window)
             switch(mn_event->detail)
             {
                 case XCB_BUTTON_INDEX_1: 
-                    event.type = CP_EVENT_LBUTTONUP; 
+                    event->type = CP_EVENT_LBUTTONUP; 
                     CP_log_trace("left mouse button up");
                     break;
                 case XCB_BUTTON_INDEX_2: 
-                    event.type = CP_EVENT_MBUTTONUP; 
+                    event->type = CP_EVENT_MBUTTONUP; 
                     CP_log_trace("middle mouse button up");
                     break;
                 case XCB_BUTTON_INDEX_3: 
-                    event.type = CP_EVENT_RBUTTONUP; 
+                    event->type = CP_EVENT_RBUTTONUP; 
                     CP_log_trace("right mouse button up");
                     break;
                 default: break;
@@ -496,14 +489,43 @@ CP_WindowEvent CP_getNextEvent(CP_Window*const window)
             if((client_message_event->window == window->windowId) && 
                (client_message_event->data.data32[0] == window->wmDeleteProtocol))
             {
-                event.type = CP_EVENT_QUIT;
+                event->type = CP_EVENT_QUIT;
                 CP_log_trace("quit event");
             }
             break;
         }
         default:break;
     }
+}
 
+CP_WindowEvent CP_getNextEvent(CP_Window*const window)
+{
+    CP_WindowEvent event = {};
+    xcb_generic_event_t* xcb_event;
+
+    xcb_event = xcb_poll_for_event(window->connection);
+    if(xcb_event == NULL)
+    {
+        return event;
+    }
+
+    CP_processEvent(window, &event, xcb_event);
+
+    return event;
+}
+
+CP_WindowEvent CP_waitForNextEvent(CP_Window*const window)
+{
+    CP_WindowEvent event = {};
+    xcb_generic_event_t* xcb_event;
+
+    xcb_event = xcb_wait_for_event(window->connection);
+    if(xcb_event == NULL)
+    {
+        return event;
+    }
+
+    CP_processEvent(window, &event, xcb_event);
 
     return event;
 }

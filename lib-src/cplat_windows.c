@@ -20,6 +20,7 @@
 
 #include "cplat.h"
 #ifdef CP_WIN32
+#include <windows.h>
 
 LRESULT CALLBACK WIN32_processMessage(HWND hwnd, uint32_t msg, WPARAM wparam, LPARAM lparam);
 CP_ERROR cp_setOpenGLVersion(CP_Window*const window, int majorVersion, int minorVersion);
@@ -30,7 +31,7 @@ void CP_getWindowWH(const CP_Window*const window, int*const width, int*const hei
     CP_assert(height);
 
     RECT clientRect;
-    GetClientRect(window->hwnd, &clientRect)
+    GetClientRect(window->hwnd, &clientRect);
     *width = clientRect.right - clientRect.left;
     *height = clientRect.bottom - clientRect.top;
 }
@@ -47,14 +48,14 @@ void CP_getScreenWH(const CP_Window*const window, int*const width, int*const hei
 
 void CP_getScreenXY(const CP_Window*const window, int*const x, int*const y)
 {
-    CP_assert(width);
-    CP_assert(height);
+    CP_assert(x);
+    CP_assert(y);
     
     POINT point = {0, 0};
-    ClientToScreen(window->hwnd, &point)
+    ClientToScreen(window->hwnd, &point);
 
-    *width = point.x;
-    *height = point.y; 
+    *x = point.x;
+    *y=  point.y; 
 }
 
 CP_ERROR CP_createWindow(CP_Window*const window, const CP_WindowConfig* const config)
@@ -270,6 +271,20 @@ CP_WindowEvent CP_getNextEvent(CP_Window*const window)
         TranslateMessage(&message);
         DispatchMessageA(&message);
     }
+
+    return event;
+}
+
+CP_WindowEvent CP_waitForNextEvent(CP_Window*const window)
+{
+    MSG message;
+    CP_WindowEvent event = {0};
+
+    SetWindowLongPtrA(window->hwnd, GWLP_USERDATA, (long long)&event);
+    
+    GetMessageA(&message, window->hwnd, 0, 0);
+    TranslateMessage(&message);
+    DispatchMessageA(&message);
 
     return event;
 }

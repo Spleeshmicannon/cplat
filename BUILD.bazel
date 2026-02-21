@@ -2,10 +2,18 @@ load("@rules_cc//cc:defs.bzl", "cc_library", "cc_binary")
 
 cc_library(
     name = "cplat",
-    srcs = glob(["lib-src/**/*.c", "lib-src/*.c"]),
-    hdrs = glob(["lib-src/**/*.h", "lib-src/*.h"]),
-    linkopts = [ # only for linux
-                 # for windows use -> "opengl32", "gdi32"
+    srcs = glob([
+        "lib-src/**/*.c",
+        "lib-src/*.c",
+    ]),
+    hdrs = glob([
+        "lib-src/**/*.h",
+        "lib-src/*.h",
+    ]),
+    includes = ["lib-src/"],
+    linkopts = [
+        # only for linux
+        # for windows use -> "opengl32", "gdi32"
         "-lxcb",
         "-lxcb-util",
         "-lxcb-icccm",
@@ -13,8 +21,14 @@ cc_library(
         "-lX11-xcb",
         "-lX11",
         "-lGL",
-        "-lEGL"
+        "-lEGL",
     ],
-    includes = ["lib-src/"],
-    visibility = ["//visibility:public"]
+    visibility = ["//visibility:public"],
+)
+
+cc_binary(
+    name = "test",
+    srcs = [ "src/main.cpp" ],
+    deps = [ ":cplat" ],
+    visibility = ["//visibility:public"],
 )

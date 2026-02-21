@@ -27,6 +27,7 @@ extern "C" {
 
 #include "cplat/keys.h"
 #include "cplat/macros.h"
+#include "cplat/thread.h"
 #include "cplat/logger.h"
 #include "cplat/asserts.h"
 #include "cplat/memory.h"
@@ -49,7 +50,6 @@ typedef enum : uint8_t
     CP_WINDOW_FLAGS_MOUSE_CAP       = 0x10,
     CP_WINDOW_FLAGS_INIT_OPENGL     = 0x20,
     // TODO: CP_WINDOW_FLAGS_INIT_VULKAN     = 0x40,
-
     CP_WINDOW_FLAGS_NONE            = 0x00
 }
 CP_WINDOW_FLAGS;
@@ -116,6 +116,8 @@ void CP_getScreenWH(const CP_Window*const window, int*const width, int*const hei
 void CP_getScreenXY(const CP_Window*const window, int*const x, int*const y);
 
 CP_WindowEvent CP_getNextEvent(CP_Window*const window);
+CP_WindowEvent CP_waitForNextEvent(CP_Window*const window);
+
 void CP_destroyWindow(CP_Window*const window);
 
 #ifdef __cplusplus

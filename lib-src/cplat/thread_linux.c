@@ -1,5 +1,5 @@
 /* zlib license
- * Copyright (C) 2025 J. Benson
+ * Copyright (C) 2026-02-20 22:52:10 J. Benson
  * 
  * This software is provided 'as-is', without any express or implied
  * warranty.  In no event will the authors be held liable for any damages
@@ -18,32 +18,42 @@
  * 3. This notice may not be removed or altered from any source distribution.
 */
 
-#ifndef CP_ASSERTS
-#define CP_ASSERTS
-
 #include "macros.h"
+#ifdef CP_LINUX
+
+#include <pthread.h>
+
+#include "memory.h"
+#include "thread.h"
 #include "logger.h"
 
-#include <stdbool.h>
-#ifdef CP_EXIT_ON_ASSERT_FAIL
-#include <stdlib.h>
-#endif
-
-#ifdef CP_ASSERT_ENABLED
-static CP_INLINE void cp_assert(const char* const file, const int line, bool expr)
+bool CP_threadCreate(CP_Thread* thread, CP_ThreadCallbackType callback, void* thread_arg)
 {
-    if(!expr)
+    const int errorValue = pthread_create(
+        &thread->platformThread,
+        NULL,
+        callback,
+        thread_arg
+    );
+
+    if(0 != errorValue)
     {
-        CP_log_error("Assertion Failure: %s:%d", file, line);
-#ifdef CP_EXIT_ON_ASSERT_FAIL
-        exit(128);
-#endif
+        CP_free(thread);
+        CP_log_error("Failed to create pthread with error %d", errorValue);
+        return false;
     }
+
+    return true;
 }
 
-#define CP_assert(expr) cp_assert(__FILE__, __LINE__, expr)
-#else
-#define CP_assert(expr) (void)(expr)
-#endif
+void CP_threadJoin(CP_Thread* thread)
+{
+    pthread_join(thread->platformThread, NULL);
+}
 
-#endif // CP_ASSERTS
+void CP_threadDetach(CP_Thread* thread)
+{
+    pthread_detach(thread->platformThread);
+}
+
+#endif // CP_LINUX
