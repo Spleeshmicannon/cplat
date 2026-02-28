@@ -419,8 +419,16 @@ void CP_processEvent(CP_Window*const window, CP_WindowEvent*const event, xcb_gen
             const xcb_motion_notify_event_t*const mn_event = (xcb_motion_notify_event_t*)xcb_event;
 
             event->type = CP_EVENT_MOUSEMOVE;
-            event->mx = (uint16_t)mn_event->root_x;
-            event->my = (uint16_t)mn_event->root_y;
+            
+            // TODO performance problems
+            // This takes ~1ms so should
+            // probably move to reacting
+            // to a win move event
+            int sX, sY;
+            CP_getScreenXY(window, &sX, &sY); 
+
+            event->mx = (uint16_t)mn_event->root_x - sX;
+            event->my = (uint16_t)mn_event->root_y - sY;
 
             CP_log_trace("mouse motion at %d, %d", event.mx, event.my);
             break;

@@ -88,6 +88,8 @@ typedef enum
     CP_EVENT_LBUTTONUP = 9,
     CP_EVENT_MBUTTONUP = 10,
     CP_EVENT_RBUTTONUP = 11,
+    CP_EVENT_WIN_MOVE = 12,  // not implemented
+    CP_EVENT_WIN_RESIZE = 13 // not implemented
 }
 CP_EVENT;
 
