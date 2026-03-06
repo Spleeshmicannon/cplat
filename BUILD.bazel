@@ -18,6 +18,7 @@ cc_library(
         "-lxcb-util",
         "-lxcb-icccm",
         "-lxcb-keysyms",
+        "-lxcb-randr",
         "-lX11-xcb",
         "-lX11",
         "-lGL",

@@ -57,7 +57,7 @@ target_compile_options(cplat PRIVATE -Wimplicit)
 if(WIN32)
     target_link_libraries(cplat PUBLIC opengl32 gdi32)
 else()
-    target_link_libraries(cplat PUBLIC xcb xcb-util xcb-icccm xcb-keysyms X11-xcb X11 GL EGL)
+    target_link_libraries(cplat PUBLIC xcb xcb-util xcb-icccm xcb-keysyms xcb-randr X11-xcb X11 GL EGL)
 endif()
 
 # CPLAT test executable

@@ -19,6 +19,7 @@
 */
 
 #include "cplat.h"
+#include <xcb/xproto.h>
 #ifdef CP_LINUX
 #include <X11/Xlib.h>
 
@@ -26,6 +27,7 @@
 #include <stdlib.h>
 
 #include <xcb/xcb_icccm.h>
+#include <xcb/randr.h>
 
 #define XK_LATIN1
 #define XK_MISCELLANY
@@ -47,12 +49,100 @@ void CP_getWindowWH(const CP_Window*const window, int*const width, int*const hei
                     EGL_HEIGHT, height);
 }
 
-void CP_getScreenWH(const CP_Window*const window, int*const width, int*const height)
+
+
+static void _cp_getScreenXYWH(
+    const CP_Window*const window, 
+    uint16_t*const width, 
+    uint16_t*const height,
+    int16_t*const x,
+    int16_t*const y)
+{
+    CP_assert(x);
+    CP_assert(y);
+    CP_assert(width);
+    CP_assert(height);
+    
+    // Fallback to full screen geometry if RandR fails
+    *x = 0;
+    *y = 0;
+    *width = window->screen->width_in_pixels;
+    *height = window->screen->height_in_pixels;
+
+    xcb_randr_get_screen_resources_current_cookie_t cookie =
+        xcb_randr_get_screen_resources_current(
+            window->connection, 
+            window->screen->root);
+
+    xcb_randr_get_screen_resources_current_reply_t *res =
+        xcb_randr_get_screen_resources_current_reply(
+            window->connection, 
+            cookie, 
+            NULL);
+
+    if (!res) return;
+
+    int output_count = xcb_randr_get_screen_resources_current_outputs_length(res);
+    xcb_randr_output_t *outputs =
+        xcb_randr_get_screen_resources_current_outputs(res);
+
+    for (int i = 0; i < output_count; i++) {
+        xcb_randr_get_output_info_reply_t *out_info =
+            xcb_randr_get_output_info_reply(window->connection,
+                xcb_randr_get_output_info(
+                    window->connection, 
+                    outputs[i], 
+                    XCB_CURRENT_TIME),
+                NULL);
+
+        if (!out_info) continue;
+
+        // Skip disconnected outputs or outputs with no active CRTC
+        if (out_info->connection != XCB_RANDR_CONNECTION_CONNECTED ||
+            out_info->crtc == XCB_NONE) {
+            free(out_info);
+            continue;
+        }
+
+        xcb_randr_get_crtc_info_reply_t *crtc =
+            xcb_randr_get_crtc_info_reply(window->connection,
+                xcb_randr_get_crtc_info(window->connection, 
+                    out_info->crtc, 
+                    XCB_CURRENT_TIME),
+                NULL);
+
+        if (!crtc) { free(out_info); continue; }
+
+        // Use the first active connected output as primary.
+        // You can extend this to check xcb_randr_get_output_primary()
+        // if you need the user-designated primary monitor.
+        *x = crtc->x;
+        *y = crtc->y;
+        *width = crtc->width;
+        *height = crtc->height;
+
+        free(crtc);
+        free(out_info);
+        break;
+    }
+
+    free(res);
+}
+
+void CP_getScreenWH(
+    const CP_Window*const window, 
+    int*const width, 
+    int*const height)
 {
     CP_assert(width);
     CP_assert(height);
-    *width = window->screen->width_in_pixels;
-    *height = window->screen->height_in_pixels;
+
+    uint16_t _width, _height;
+    int16_t x,y;
+
+    _cp_getScreenXYWH(window, &_width, &_height, &x, &y);
+    *width = (int)_width;
+    *height = (int)_height;
 }
 
 void CP_getScreenXY(const CP_Window*const window, int*const x, int*const y)
@@ -75,6 +165,26 @@ void CP_getScreenXY(const CP_Window*const window, int*const x, int*const y)
     
     free(geom);
     free(trans);
+}
+
+static xcb_atom_t _cp_get_atom(CP_Window*const window, const char* name)
+{
+    xcb_intern_atom_cookie_t intern_atom_cookie = xcb_intern_atom(
+        window->connection, 
+        true, 
+        strlen(name), 
+        name 
+    );
+    
+    xcb_intern_atom_reply_t* intern_atom_reply = xcb_intern_atom_reply(
+        window->connection, 
+        intern_atom_cookie, 
+        NULL
+    );
+    xcb_atom_t prop = intern_atom_reply->atom;
+    free(intern_atom_reply);
+    
+    return prop;
 }
 
 CP_ERROR CP_createWindow(CP_Window*const window, const CP_WindowConfig* const config)
@@ -128,11 +238,26 @@ CP_ERROR CP_createWindow(CP_Window*const window, const CP_WindowConfig* const co
     
     uint16_t win_width = config->width;
     uint16_t win_height = config->height;
+    int16_t win_x = 0;
+    int16_t win_y = 0;
 
     if(config->flags & CP_WINDOW_FLAGS_FULLSCREEN)
     {
-        win_width = window->screen->width_in_pixels;
-        win_height = window->screen->height_in_pixels;
+        _cp_getScreenXYWH(
+            window, 
+            &win_width, 
+            &win_height, 
+            &win_x, 
+            &win_y
+        );
+
+        CP_log_info(
+            "fullscreen pos %d,%d | fullscreen resolution %dx%d", 
+            win_x,
+            win_y,
+            win_width, 
+            win_height
+        );
     }
     
     xcb_create_window(
@@ -140,8 +265,8 @@ CP_ERROR CP_createWindow(CP_Window*const window, const CP_WindowConfig* const co
         0,
         window->windowId,
         window->screen->root,
-        0,
-        0,
+        win_x,
+        win_y,
         win_width,
         win_height,
         0,
@@ -151,40 +276,28 @@ CP_ERROR CP_createWindow(CP_Window*const window, const CP_WindowConfig* const co
         value_list
     );
 
-    // creating data for window manager protocl
-    const char* window_manager_protocol_name = "WM_PROTOCOLS";
-    uint16_t window_manager_protocol_name_size = (uint16_t)strlen(window_manager_protocol_name);
-    xcb_intern_atom_cookie_t intern_atom_cookie = xcb_intern_atom(
-        window->connection, 
-        true, 
-        window_manager_protocol_name_size, 
-        window_manager_protocol_name
-    );
-    
-    xcb_intern_atom_reply_t* intern_atom_reply = xcb_intern_atom_reply(
-        window->connection, 
-        intern_atom_cookie, 
-        NULL
-    );
-    xcb_atom_t window_manager_protocols_property = intern_atom_reply->atom;
-    free(intern_atom_reply);
+    if(config->flags & CP_WINDOW_FLAGS_FULLSCREEN)
+    {
+        xcb_atom_t net_wm_state = _cp_get_atom(window, "_NET_WM_STATE");
+        xcb_atom_t net_wm_state_fullscreen = _cp_get_atom(window, "_NET_WM_FULLSCREEN");
+        
+        xcb_change_property(
+            window->connection,
+            XCB_PROP_MODE_REPLACE,
+            window->windowId,
+            net_wm_state,
+            XCB_ATOM_ATOM,
+            32,
+            1,
+            &net_wm_state_fullscreen
+        );
+    }
+
+    // creating data for window manager protocol
+    xcb_atom_t window_manager_protocols_property = _cp_get_atom(window, "WM_PROTOCOLS");
     
     // creating data for window manager deletion protocol
-    const char* window_manager_delete_protocol_name = "WM_DELETE_WINDOW";
-    uint16_t window_manager_delete_protocol_name_size = (uint16_t)strlen(window_manager_delete_protocol_name);
-    intern_atom_cookie = xcb_intern_atom(
-        window->connection, 
-        true, 
-        window_manager_delete_protocol_name_size, 
-        window_manager_delete_protocol_name
-    );
-    intern_atom_reply = xcb_intern_atom_reply(
-        window->connection, 
-        intern_atom_cookie, 
-        NULL
-    );
-    xcb_atom_t window_manager_window_delete_protocol = intern_atom_reply->atom;
-    free(intern_atom_reply);
+    xcb_atom_t window_manager_window_delete_protocol = _cp_get_atom(window, "WM_DELETE_WINDOW");
     
     // setting window deletion and title up
     xcb_icccm_set_wm_name(
@@ -256,8 +369,8 @@ CP_ERROR CP_createWindow(CP_Window*const window, const CP_WindowConfig* const co
     {
         // setting window size 
         xcb_size_hints_t window_size_hints;
-        xcb_icccm_size_hints_set_min_size(&window_size_hints, config->width, config->height);
-        xcb_icccm_size_hints_set_max_size(&window_size_hints, config->width, config->height);
+        xcb_icccm_size_hints_set_min_size(&window_size_hints, win_width, win_height);
+        xcb_icccm_size_hints_set_max_size(&window_size_hints, win_width, win_height);
         xcb_icccm_set_wm_size_hints(
             window->connection, 
             window->windowId, 
