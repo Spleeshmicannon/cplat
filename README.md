@@ -10,10 +10,8 @@ The current development progress is thus:
 - [x] Get window opening/closing working on Linux
 - [x] Get window event management working on Windows
 - [x] Get window event management working on Linux
-- [x] (optional) OpenGL context initialisation on Windows
-- [x] (optional) OpenGL context initialisation on Linux
-- [ ] (optional) Vulkan context initialisation on Windows
-- [ ] (optional) Vulkan context initialisation on Linux
+- [x] OpenGL context initialisation on Windows
+- [x] OpenGL context initialisation on Linux
 - [ ] Polish and extensions for weird keys and controllers
 
 ## Building
@@ -67,3 +65,24 @@ Cplat exposes the native api by directly exposing the data in CP_Window. This ma
 easy to integrate with other software and easy to extend.
 There is a tradeoff here, in that if you access the struct fields in your code it will no longer
 be portable. That said, you can add `CP_WIN32/CP_LINUX` in `#ifdefs` to make those sections portable.
+
+### Aiming to be minimalistic 
+I aim for Cplat to be minimalistic. SDL will get you to choose an x,y coordinate for instance but
+I don't give you that option here. There are some edge cases I'm sure where that matters and if
+someone asks for it I'll add it, but I think it adds unecessary complexity at this stage at least.
+
+So given that I'm aiming for that. What use cases am I minimising for?
+I'm mostly making this for:
+ - Games
+ - Rendering Demos
+ - Basic Desktop Applications
+
+### What did I develope this on?
+I've developed this on Arch Linux using DWM as my desktop environment. That said, I've tested
+the windows version of this extensively with wine (with an exception for the threading stuff).
+
+I've used a mixture of Bazel 9.0.0, CMake 4.2.3, gcc 15.2.1 to build and compile applications using this library.
+
+I'm currently developing a task manager application that will only run on linux and a simple
+game that will target windows and linux. I'm hoping these applications will help me iron out
+some of the kinks in the library.
