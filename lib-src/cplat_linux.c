@@ -19,14 +19,10 @@
 */
 
 #include "cplat.h"
-#include <xcb/xproto.h>
+
 #ifdef CP_LINUX
 #include <X11/Xlib.h>
-
-#include <string.h>
-#include <stdlib.h>
-
-#include <xcb/xcb_icccm.h>
+#include <xcb/xproto.h>
 #include <xcb/randr.h>
 
 #define XK_LATIN1
@@ -34,6 +30,27 @@
 #include <X11/keysymdef.h>
 
 #include <GL/gl.h>
+
+#include <string.h>
+#include <stdlib.h>
+
+typedef struct 
+{
+    uint32_t flags;
+    int32_t x, y;
+    int32_t width, height;
+    int32_t min_width, min_height;
+    int32_t max_width, max_height;
+    int32_t width_inc, height_inc;
+    int32_t min_aspect_num, min_aspect_den;
+    int32_t max_aspect_num, max_aspect_den;
+    int32_t base_width, base_height;
+    int32_t win_gravity;
+} 
+_cp_SizeHints;
+
+#define CP_SIZE_HINT_MIN_SIZE (1 << 4)
+#define CP_SIZE_HINT_MAX_SIZE (1 << 5)
 
 CP_INLINE CP_KEY CP_xcbKeyToCPkey(xcb_keysym_t keycode);
 
@@ -189,7 +206,6 @@ static xcb_atom_t _cp_get_atom(CP_Window*const window, const char* name)
 
 CP_ERROR CP_createWindow(CP_Window*const window, const CP_WindowConfig* const config)
 {
-    int screen_count = 0;
     memset(window, 0, sizeof(CP_Window));
 
     window->xDisplay = XOpenDisplay(NULL);
@@ -206,11 +222,15 @@ CP_ERROR CP_createWindow(CP_Window*const window, const CP_WindowConfig* const co
         CP_log_error("null xcb connection");
         return CP_ERROR_OS_CALL_FAILED;
     }
-
-    xcb_aux_get_screen(window->connection, screen_count);
     
     // get the default screen
-    window->screen = xcb_aux_get_screen(window->connection, screen_count);
+    xcb_screen_iterator_t iter = xcb_setup_roots_iterator(xcb_get_setup(window->connection));
+    for(int i = 0; i < DefaultScreen(window->xDisplay); i++)
+    {
+        xcb_screen_next(&iter);
+    }
+    window->screen = iter.data;
+
     if(window->screen == NULL)
     {
         CP_log_error("unable to get screen");
@@ -300,21 +320,28 @@ CP_ERROR CP_createWindow(CP_Window*const window, const CP_WindowConfig* const co
     xcb_atom_t window_manager_window_delete_protocol = _cp_get_atom(window, "WM_DELETE_WINDOW");
     
     // setting window deletion and title up
-    xcb_icccm_set_wm_name(
-        window->connection, 
-        window->windowId, 
-        XCB_ATOM_STRING, 
-        sizeof(char) * 8, 
-        (uint16_t)strlen(config->windowName), 
+    xcb_change_property(
+        window->connection,
+        XCB_PROP_MODE_REPLACE,
+        window->windowId,
+        XCB_ATOM_WM_NAME,
+        XCB_ATOM_STRING,
+        8, // data bit width
+        strlen(config->windowName),
         config->windowName
     );
-    xcb_icccm_set_wm_protocols(
-        window->connection, 
-        window->windowId, 
-        window_manager_protocols_property, 
-        1, 
-        &window_manager_window_delete_protocol
+
+    xcb_change_property(
+        window->connection,
+        XCB_PROP_MODE_REPLACE,
+        window->windowId,
+        window_manager_protocols_property,  // WM_PROTOCOLS atom
+        XCB_ATOM_ATOM,
+        32, // data bit width
+        1,  // data length
+        &window_manager_window_delete_protocol  // WM_DELETE_WINDOW atom
     );
+    
     window->wmDeleteProtocol = window_manager_window_delete_protocol;
     window->wmProtocols = window_manager_protocols_property;
 
@@ -368,15 +395,24 @@ CP_ERROR CP_createWindow(CP_Window*const window, const CP_WindowConfig* const co
     if (!(config->flags & CP_WINDOW_FLAGS_RESIZEABLE))
     {
         // setting window size 
-        xcb_size_hints_t window_size_hints;
-        xcb_icccm_size_hints_set_min_size(&window_size_hints, win_width, win_height);
-        xcb_icccm_size_hints_set_max_size(&window_size_hints, win_width, win_height);
-        xcb_icccm_set_wm_size_hints(
-            window->connection, 
-            window->windowId, 
-            XCB_ATOM_WM_NORMAL_HINTS, 
-            &window_size_hints
+        _cp_SizeHints hints = {0};
+        hints.flags      = CP_SIZE_HINT_MIN_SIZE | CP_SIZE_HINT_MAX_SIZE;
+        hints.min_width  = win_width;
+        hints.min_height = win_height;
+        hints.max_width  = win_width;
+        hints.max_height = win_height;
+        
+        xcb_change_property(
+            window->connection,
+            XCB_PROP_MODE_REPLACE,
+            window->windowId,
+            XCB_ATOM_WM_NORMAL_HINTS,
+            XCB_ATOM_WM_SIZE_HINTS,
+            32,
+            sizeof(_cp_SizeHints) / 4,
+            &hints
         );
+        
     }
 
     // showing the window

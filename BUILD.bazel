@@ -15,8 +15,6 @@ cc_library(
         # only for linux
         # for windows use -> "opengl32", "gdi32"
         "-lxcb",
-        "-lxcb-util",
-        "-lxcb-icccm",
         "-lxcb-keysyms",
         "-lxcb-randr",
         "-lX11-xcb",

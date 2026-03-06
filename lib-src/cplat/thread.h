@@ -21,7 +21,7 @@
 #ifndef THREAD_H
 #define THREAD_H
 
-#define NANOS_IN_ONE_SECOND 1000000000
+#define NANOS_IN_ONE_SECOND (unsigned long long)1000000000
 
 #include "macros.h"
 
@@ -84,8 +84,8 @@ static inline void CP_destroy(CP_Mutex*const mutex)
 static inline void CP_Sleep(unsigned long long unix_nanoseconds)
 {
     const struct timespec ts = {
-        .tv_sec = unix_nanoseconds / NANOS_IN_ONE_SECOND,
-        .tv_nsec = unix_nanoseconds % NANOS_IN_ONE_SECOND
+        .tv_sec = (long int)(unix_nanoseconds / NANOS_IN_ONE_SECOND),
+        .tv_nsec = (long int)(unix_nanoseconds % NANOS_IN_ONE_SECOND)
     };
 
     nanosleep(&ts, NULL);
