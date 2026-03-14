@@ -44,13 +44,9 @@ typedef struct
 
 typedef void* (CP_ThreadCallbackType(void*));
 
-bool CP_threadCreate(CP_Thread* thread, CP_ThreadCallbackType callback, void* thread_arg);
-void CP_threadJoin(CP_Thread* thread); // deallocates thread
-void CP_threadDetach(CP_Thread* thread); // deallocates thread
-
-
-
-
+CPLAT_API bool CP_threadCreate(CP_Thread* thread, CP_ThreadCallbackType callback, void* thread_arg);
+CPLAT_API void CP_threadJoin(CP_Thread* thread); // deallocates thread
+CPLAT_API void CP_threadDetach(CP_Thread* thread); // deallocates thread
 
 #ifdef CP_LINUX
 #include <pthread.h>

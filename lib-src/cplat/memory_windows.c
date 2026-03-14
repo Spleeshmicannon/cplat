@@ -12,6 +12,11 @@ void* CP_allocate(const size_t bytes)
     return HeapAlloc(GetProcessHeap(), HEAP_ZERO_MEMORY, bytes);
 }
 
+void* CP_reallocate(void*const oldBlock, const size_t newSize)
+{
+    return HeapReAlloc(GetProcessHeap(), HEAP_ZERO_MEMORY, oldBlock, newSize);
+}
+
 void CP_free(void* block)
 {
     HeapFree(GetProcessHeap(),0, block);
@@ -19,21 +24,15 @@ void CP_free(void* block)
 
 void* CP_sysAllocate(const size_t bytes)
 {
-    const size_t largePageSizeMin = GetLargePageMinimum();
-    size_t roundedSize = bytes;
-    if (bytes >= largePageSizeMin)
+    if(0 == bytes)
     {
-        // bitwise rounding
-        roundedSize =
-            ((bytes + largePageSizeMin - 1) / largePageSizeMin) * largePageSizeMin;
-        CP_log_warn("Allocating with large pages");
+        return NULL;
     }
 
     void* ptr = VirtualAlloc(
         0, 
-        roundedSize, 
-        MEM_COMMIT | MEM_RESERVE | 
-        (bytes >= largePageSizeMin ? MEM_LARGE_PAGES : 0), 
+        bytes, 
+        MEM_COMMIT | MEM_RESERVE, 
         PAGE_READWRITE
     );
 
@@ -43,6 +42,26 @@ void* CP_sysAllocate(const size_t bytes)
     }
 
     return ptr;
+}
+
+void* CP_sysReallocate(void* oldBlock, const size_t newSize)
+{
+    MEMORY_BASIC_INFORMATION mbi;
+    if(0 == VirtualQuery(oldBlock, &mbi, sizeof(mbi)))
+    {
+        return NULL;
+    }
+
+    void* newBlock = CP_sysAllocate(newSize);
+    if(NULL == newBlock)
+    {
+        return NULL;
+    }
+
+    memcpy(newBlock, oldBlock, mbi.RegionSize);
+    VirtualFree(oldBlock, 0, MEM_RELEASE);
+
+    return newBlock;
 }
 
 bool CP_sysFree(void* block)

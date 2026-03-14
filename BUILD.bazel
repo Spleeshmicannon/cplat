@@ -1,4 +1,4 @@
-load("@rules_cc//cc:defs.bzl", "cc_library", "cc_binary")
+load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_library")
 
 cc_library(
     name = "cplat",
@@ -11,23 +11,33 @@ cc_library(
         "lib-src/*.h",
     ]),
     includes = ["lib-src/"],
-    linkopts = [
-        # only for linux
-        # for windows use -> "opengl32", "gdi32"
-        "-lxcb",
-        "-lxcb-keysyms",
-        "-lxcb-randr",
-        "-lX11-xcb",
-        "-lX11",
-        "-lGL",
-        "-lEGL",
-    ],
+    linkopts = select({
+        "@platforms//os:windows": [
+            "-static",
+            "-lopengl32",
+            "-lgdi32",
+            "-mwindows"
+        ],
+        "@platforms//os:linux": [
+            "-lxcb",
+            "-lxcb-keysyms",
+            "-lxcb-randr",
+            "-lX11-xcb",
+            "-lX11",
+            "-lGL",
+            "-lEGL",
+        ],
+        "//conditions:default": [],
+    }),
     visibility = ["//visibility:public"],
+    alwayslink = True,
+    linkstatic = True,
+    #defines = ["CP_DEBUG"]
 )
 
 cc_binary(
     name = "test",
-    srcs = [ "src/main.cpp" ],
-    deps = [ ":cplat" ],
+    srcs = ["src/main.cpp"],
     visibility = ["//visibility:public"],
+    deps = [":cplat"],
 )

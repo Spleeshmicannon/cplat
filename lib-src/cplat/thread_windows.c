@@ -37,14 +37,14 @@ typedef struct
 static DWORD WINAPI threadShim(LPVOID param)
 {
     _cp_ThreadShim* shim = (_cp_ThreadShim*)param;
-    void* val = shim->callback(shim->callback);
+    void* val = shim->callback((void*)shim->thread_arg);
     CP_free(shim);
     return 0;
 }
 
 bool CP_threadCreate(CP_Thread* thread, CP_ThreadCallbackType callback, void* thread_arg)
 {
-    _cp_ThreadShim* shim = CP_allocate(sizeof(_cp_ThreadShim));
+    _cp_ThreadShim* shim = (_cp_ThreadShim*)CP_allocate(sizeof(_cp_ThreadShim));
     shim->thread_arg = thread_arg;
     shim->callback = callback;
 

@@ -551,7 +551,7 @@ void CP_processEvent(CP_Window*const window, CP_WindowEvent*const event, xcb_gen
             event->key = CP_xcbKeyToCPkey(
                 xcb_key_symbols_get_keysym(window->keySymbols, kb_event->detail, 0)
             );
-            CP_log_trace("key press of %s", CP_keyToString(event.key));
+            CP_log_trace("key press of %s", CP_keyToString(event->key));
             break;
         }
         case XCB_KEY_RELEASE:
@@ -560,7 +560,7 @@ void CP_processEvent(CP_Window*const window, CP_WindowEvent*const event, xcb_gen
 
             event->type = CP_EVENT_KEYDOWN;
             event->key = CP_xcbKeyToCPkey( xcb_key_symbols_get_keysym(window->keySymbols, kb_event->detail, 0));
-            CP_log_trace("key release of %s", CP_keyToString(event.key));
+            CP_log_trace("key release of %s", CP_keyToString(event->key));
             break;
         }
         case XCB_MOTION_NOTIFY:
@@ -579,7 +579,7 @@ void CP_processEvent(CP_Window*const window, CP_WindowEvent*const event, xcb_gen
             event->mx = (uint16_t)mn_event->root_x - sX;
             event->my = (uint16_t)mn_event->root_y - sY;
 
-            CP_log_trace("mouse motion at %d, %d", event.mx, event.my);
+            CP_log_trace("mouse motion at %d, %d", event->mx, event->my);
             break;
         }
         case XCB_BUTTON_PRESS:

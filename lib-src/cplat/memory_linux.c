@@ -34,6 +34,11 @@ void* CP_allocate(const size_t bytes)
     return block;
 }
 
+void* CP_reallocate(void* oldBlock, const size_t newSize)
+{
+    return realloc(oldBlock, newSize);
+}
+
 void CP_free(void* block)
 {
     free(block);
@@ -58,6 +63,24 @@ void* CP_sysAllocate(const size_t bytes)
     *(size_t*)block = bytes + sizeof(size_t);
 
     return (char*)block + sizeof(size_t);
+}
+
+void* CP_sysReallocate(void* oldBlock, const size_t newSize)
+{
+    void* newBlock = mremap(
+        oldBlock,
+        *(size_t*)oldBlock,
+        newSize + sizeof(size_t),
+        MREMAP_MAYMOVE
+    );
+
+    if(newBlock == MAP_FAILED)
+    {
+        return NULL;
+    }
+
+    *(size_t*)newBlock = newSize;
+    return newBlock;
 }
 
 bool CP_sysFree(void* block)

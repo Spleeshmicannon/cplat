@@ -21,15 +21,20 @@
 #ifndef CP_MEMORY_H
 #define CP_MEMORY_H
 
+#include "macros.h"
+
 #include <stddef.h>
 #include <stdbool.h>
+#include <string.h>
 
 // cross platform memory allocation for smaller allocations
-void* CP_allocate(const size_t bytes);
-void CP_free(void* block);
+CPLAT_API void* CP_allocate(const size_t bytes);
+CPLAT_API void* CP_reallocate(void* oldBlock, const size_t newSize);
+CPLAT_API void CP_free(void* block);
 
 // cross platform memory allocation for larger allocations
-void* CP_sysAllocate(const size_t bytes);
-bool CP_sysFree(void* block);
+CPLAT_API void* CP_sysAllocate(const size_t bytes);
+CPLAT_API void* CP_sysReallocate(void* oldBlock, const size_t newSize);
+CPLAT_API bool CP_sysFree(void* block);
 
 #endif // CP_MEMORY_H

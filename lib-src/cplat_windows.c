@@ -22,6 +22,11 @@
 #ifdef CP_WIN32
 #include <windows.h>
 
+#ifndef __gl_h_
+#include <GL/gl.h>
+#endif
+#include <GL/wglext.h>
+
 LRESULT CALLBACK WIN32_processMessage(HWND hwnd, uint32_t msg, WPARAM wparam, LPARAM lparam);
 CP_ERROR cp_setOpenGLVersion(CP_Window*const window, int majorVersion, int minorVersion);
 
@@ -155,6 +160,8 @@ CP_ERROR CP_createWindow(CP_Window*const window, const CP_WindowConfig* const co
         SetCapture(window->hwnd);
     }
 
+    CP_log_trace("initial hwnd is %d", window->hwnd);
+
     if(config->flags & CP_WINDOW_FLAGS_INIT_OPENGL)
     {
         window->opengl.device = GetDC(window->hwnd);
@@ -256,13 +263,14 @@ void CP_destroyWindow(CP_Window*const window)
 
 void* CP_getGLProcAddress()
 {
-    return wglGetProcAddress;
+    return (void*)wglGetProcAddress;
 }
 
 CP_WindowEvent CP_getNextEvent(CP_Window*const window)
 {
     MSG message;
-    CP_WindowEvent event = {0};
+    CP_WindowEvent event;
+    memset(&event, 0, sizeof(CP_WindowEvent));
 
     SetWindowLongPtrA(window->hwnd, GWLP_USERDATA, (long long)&event);
     
@@ -278,11 +286,20 @@ CP_WindowEvent CP_getNextEvent(CP_Window*const window)
 CP_WindowEvent CP_waitForNextEvent(CP_Window*const window)
 {
     MSG message;
-    CP_WindowEvent event = {0};
+    CP_WindowEvent event;
+    memset(&event, 0, sizeof(CP_WindowEvent));
 
     SetWindowLongPtrA(window->hwnd, GWLP_USERDATA, (long long)&event);
+
+    CP_log_trace("HWND: %d", window->hwnd);
+
+    if (!GetMessageA(&message, window->hwnd, 0, 0))
+    {
+        event.type = CP_EVENT_QUIT; // WM_QUIT
+        PostQuitMessage(0);
+        return event;
+    }
     
-    GetMessageA(&message, window->hwnd, 0, 0);
     TranslateMessage(&message);
     DispatchMessageA(&message);
 
@@ -299,9 +316,10 @@ LRESULT CALLBACK WIN32_processMessage(HWND hwnd, uint32_t msg, WPARAM wparam, LP
         case WM_ERASEBKGND:
             CP_log_trace("WM_ERASEBKGND event");
             return 1;
+        case WM_QUIT:
         case WM_CLOSE:
         {
-            CP_log_trace("WM_CLOLSE event");
+            CP_log_trace("WM_CLOSE event");
             event->type= CP_EVENT_QUIT;
             return 0;
         }
@@ -332,7 +350,7 @@ LRESULT CALLBACK WIN32_processMessage(HWND hwnd, uint32_t msg, WPARAM wparam, LP
         case WM_KEYUP:
         case WM_SYSKEYUP:
         {
-            event->type = CP_EVENT_KEYDOWN;
+            event->type = CP_EVENT_KEYUP;
             switch((uint32_t)wparam)
             {
                 case VK_ACCEPT: event->key = CP_KEY_EXECUTE; break;

@@ -42,4 +42,14 @@
 #define CP_LINUX
 #endif 
 
+#ifdef CP_WIN32
+#ifdef CPLAT_EXPORTS
+#define CPLAT_API //__declspec(dllexport)
+#else
+#define CPLAT_API //__declspec(dllimport)
+#endif
+#else
+#define CPLAT_API
+#endif
+
 #endif // CP_MACROS

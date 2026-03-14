@@ -21,6 +21,7 @@
 #ifndef CP_LOGGER_H
 #define CP_LOGGER_H
 
+#include "macros.h"
 #include <stdarg.h>
 
 #define CV_TIME_BUFFER 26
@@ -34,9 +35,10 @@ typedef enum
     CP_LOG_INFO  = 3,
     CP_LOG_DEBUG = 4,
     CP_LOG_TRACE = 5
-}CP_LOG_LEVEL;
+}
+CP_LOG_LEVEL;
 
-void CP_logMessage(CP_LOG_LEVEL level, const char* message, ...);
+CPLAT_API void CP_logMessage(CP_LOG_LEVEL level, const char* message, ...);
 
 #ifndef NO_LOGGING
 #define CP_log_fatal(message, ...)   CP_logMessage(CP_LOG_FATAL, message, ##__VA_ARGS__);
