@@ -541,7 +541,7 @@ CP_ERROR CP_createWindow(CP_Window*const window, const CP_WindowConfig* const co
 
 void CP_processEvent(CP_Window*const window, CP_WindowEvent*const event, xcb_generic_event_t* xcb_event)
 {
-    switch(XCB_EVENT_RESPONSE_TYPE(xcb_event)) // TODO implement mouse wheel
+    switch(XCB_EVENT_RESPONSE_TYPE(xcb_event))
     {
         case XCB_KEY_PRESS:
         {
