@@ -21,7 +21,7 @@
 #ifndef THREAD_H
 #define THREAD_H
 
-#define NANOS_IN_ONE_SECOND (unsigned long long)1000000000
+#define NANOS_IN_ONE_SECOND (long long)1000000000
 
 #include "macros.h"
 
@@ -57,27 +57,27 @@ typedef struct
     pthread_mutex_t platformMutex;
 } CP_Mutex;
 
-static inline void CP_mutexInit(CP_Mutex*const mutex)
+CP_INLINE void CP_mutexInit(CP_Mutex*const mutex)
 {
     pthread_mutex_init(&mutex->platformMutex, NULL);
 }
 
-static inline void CP_mutexLock(CP_Mutex*const mutex)
+CP_INLINE void CP_mutexLock(CP_Mutex*const mutex)
 {
     pthread_mutex_lock(&mutex->platformMutex);
 }
 
-static inline void CP_mutexUnlock(CP_Mutex*const mutex)
+CP_INLINE void CP_mutexUnlock(CP_Mutex*const mutex)
 {
     pthread_mutex_unlock(&mutex->platformMutex);
 }
 
-static inline void CP_destroy(CP_Mutex*const mutex)
+CP_INLINE void CP_destroy(CP_Mutex*const mutex)
 {
     pthread_mutex_destroy(&mutex->platformMutex);
 }
 
-static inline void CP_Sleep(unsigned long long unix_nanoseconds)
+CP_INLINE void CP_Sleep(unsigned long long unix_nanoseconds)
 {
     const struct timespec ts = {
         .tv_sec = (long int)(unix_nanoseconds / NANOS_IN_ONE_SECOND),
@@ -95,27 +95,27 @@ typedef struct
     CRITICAL_SECTION platformMutex;
 } CP_Mutex;
 
-static inline void CP_mutexInit(CP_Mutex*const mutex)
+CP_INLINE void CP_mutexInit(CP_Mutex*const mutex)
 {
     InitializeCriticalSection(&mutex->platformMutex);
 }
 
-static inline void CP_mutexLock(CP_Mutex*const mutex)
+CP_INLINE void CP_mutexLock(CP_Mutex*const mutex)
 {
     EnterCriticalSection(&mutex->platformMutex);
 }
 
-static inline void CP_mutexUnlock(CP_Mutex*const mutex)
+CP_INLINE void CP_mutexUnlock(CP_Mutex*const mutex)
 {
     LeaveCriticalSection(&mutex->platformMutex);
 }
 
-static inline void CP_destroy(CP_Mutex*const mutex)
+CP_INLINE void CP_destroy(CP_Mutex*const mutex)
 {
     DeleteCriticalSection(&mutex->platformMutex);
 }
 
-static inline void CP_Sleep(unsigned long long unix_nanoseconds)
+CP_INLINE void CP_Sleep(unsigned long long unix_nanoseconds)
 {
     Sleep(unix_nanoseconds / 1000);
 }
