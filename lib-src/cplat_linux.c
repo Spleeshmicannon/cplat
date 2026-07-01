@@ -189,7 +189,7 @@ static xcb_atom_t _cp_get_atom(CP_Window*const window, const char* name)
     xcb_intern_atom_cookie_t intern_atom_cookie = xcb_intern_atom(
         window->connection, 
         true, 
-        strlen(name), 
+        (uint16_t)strlen(name), 
         name 
     );
     
@@ -327,7 +327,7 @@ CP_ERROR CP_createWindow(CP_Window*const window, const CP_WindowConfig* const co
         XCB_ATOM_WM_NAME,
         XCB_ATOM_STRING,
         8, // data bit width
-        strlen(config->windowName),
+        (uint32_t)strlen(config->windowName),
         config->windowName
     );
 
@@ -576,8 +576,8 @@ void CP_processEvent(CP_Window*const window, CP_WindowEvent*const event, xcb_gen
             int sX, sY;
             CP_getScreenXY(window, &sX, &sY); 
 
-            event->mx = (uint16_t)mn_event->root_x - sX;
-            event->my = (uint16_t)mn_event->root_y - sY;
+            event->mx = (uint16_t)(mn_event->root_x - sX);
+            event->my = (uint16_t)(mn_event->root_y - sY);
 
             CP_log_trace("mouse motion at %d, %d", event->mx, event->my);
             break;
