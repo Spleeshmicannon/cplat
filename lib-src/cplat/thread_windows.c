@@ -37,7 +37,7 @@ typedef struct
 static DWORD WINAPI threadShim(LPVOID param)
 {
     _cp_ThreadShim* shim = (_cp_ThreadShim*)param;
-    void* val = shim->callback((void*)shim->thread_arg);
+    (void)shim->callback((void*)shim->thread_arg);
     CP_free(shim);
     return 0;
 }

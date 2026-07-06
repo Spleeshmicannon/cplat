@@ -14,6 +14,12 @@ void* CP_allocate(const size_t bytes)
 
 void* CP_reallocate(void*const oldBlock, const size_t newSize)
 {
+    // Unlike C's realloc, HeapReAlloc does not accept a NULL block and fails
+    if(NULL == oldBlock)
+    {
+        return CP_allocate(newSize);
+    }
+
     return HeapReAlloc(GetProcessHeap(), HEAP_ZERO_MEMORY, oldBlock, newSize);
 }
 

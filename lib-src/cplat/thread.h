@@ -117,7 +117,7 @@ CP_INLINE void CP_destroy(CP_Mutex*const mutex)
 
 CP_INLINE void CP_Sleep(unsigned long long unix_nanoseconds)
 {
-    Sleep(unix_nanoseconds / 1000);
+    Sleep((DWORD)(unix_nanoseconds / 1000));
 }
 #endif
 
