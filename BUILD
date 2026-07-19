@@ -10,13 +10,21 @@ cc_library(
         "lib-src/**/*.h",
         "lib-src/*.h",
     ]),
+    copts = [
+        "-Werror",
+        "-Wall",
+        "-Wextra",
+        "-Wstrict-overflow=3 ",
+        "-Wconversion ",
+        "-Wformat",
+    ],
     includes = ["lib-src/"],
     linkopts = select({
         "@platforms//os:windows": [
             "-static",
             "-lopengl32",
             "-lgdi32",
-            "-mwindows"
+            "-mwindows",
         ],
         "@platforms//os:linux": [
             "-lxcb",
@@ -29,17 +37,9 @@ cc_library(
         ],
         "//conditions:default": [],
     }),
-    copts = [
-        "-Werror",
-        "-Wall",
-        "-Wextra",
-        "-Wstrict-overflow=3 ",
-        "-Wconversion ",
-        "-Wformat",
-    ],
+    linkstatic = True,
     visibility = ["//visibility:public"],
     alwayslink = True,
-    linkstatic = True,
     #defines = ["CP_DEBUG"]
 )
 
